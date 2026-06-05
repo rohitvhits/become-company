@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+ <title>NYBEST MEDICAL</title>
+  <!-- base:css -->
+  <link rel="stylesheet" href="<?php echo URL::to('/');?>/assets/vendors/mdi/css/materialdesignicons.min.css">
+  <link rel="stylesheet" href="<?php echo URL::to('/');?>/assets/vendors/css/vendor.bundle.base.css">
+  <!-- endinject -->
+  <!-- plugin css for this page -->
+  <!-- End plugin css for this page -->
+  <!-- inject:css -->
+  <link rel="stylesheet" href="<?php echo URL::to('/');?>/assets/css/vertical-layout-light/style.css">
+  <!-- endinject -->
+
+  <link rel="shortcut icon" href="/img/favicon.png" />
+
+</head>
+<style>
+  .bgimage {
+      width: 500px;
+      height: auto;
+      position: absolute;
+    }
+
+    .home-page-bg {
+      display: flex;
+      justify-content: center;
+      height: 100vh;
+      align-items: center;
+      position: relative;
+    }
+</style>
+<body class="sidebar-dark">
+  <div class="container-scroller">
+    <div class="container-fluid page-body-wrapper full-page-wrapper">
+      <div class="content-wrapper d-flex align-items-stretch auth auth-img-bg">
+        <div class="row flex-grow">
+          <div class="col-lg-6 d-flex align-items-center justify-content-center" style="color: white;background: #0F0D0B;">
+            <div class="auth-form-transparent text-left p-3">
+              <div class="brand-logo">
+                <img src="../img/logo.png" alt="logo" style='width:100%'>
+              </div>
+					@if (session('status'))
+                        <div class="alert alert-success" role="alert">
+                            {{ session('status') }}
+                        </div>
+                    @endif
+
+              <h6 class="font-weight-light">Welcome to the NyBest Medicals Client Portal!</h6>
+				<h4 style="color:red;">Please contact for administrator.</h4>
+            </div>
+          </div>
+          <div class="col-lg-6 home-page-bg">
+          <img src="{{URL::to('/')}}/img/pana.png" class="bgimage" >
+
+            <p class="text-white font-weight-medium text-center flex-grow align-self-end">Copyright &copy; 2023  All rights reserved.</p>
+          </div>
+        </div>
+      </div>
+      <!-- content-wrapper ends -->
+    </div>
+    <!-- page-body-wrapper ends -->
+  </div>
+  <!-- container-scroller -->
+  <!-- base:js -->
+  <script src="<?php echo URL::to('/');?>/assets/vendors/js/vendor.bundle.base.js"></script>
+  <!-- endinject -->
+  <!-- inject:js -->
+  <script src="<?php echo URL::to('/');?>/assets/js/off-canvas.js"></script>
+  <script src="<?php echo URL::to('/');?>/assets/js/hoverable-collapse.js"></script>
+  <script src="<?php echo URL::to('/');?>/assets/js/template.js"></script>
+  <script src="<?php echo URL::to('/');?>/assets/js/settings.js"></script>
+  <script src="<?php echo URL::to('/');?>/assets/js/todolist.js"></script>
+  <!-- endinject -->
+
+</body>
+</html>

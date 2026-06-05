@@ -1,0 +1,37 @@
+
+<div class="tab-pane" id="patient-reading-list">
+<div class="d-flex align-items-center justify-content-between mb-3">
+        <p class="card-title mb-0">Patient Reading Section <span id="total_reading_record"></span></p> 
+
+
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <div class="col-12 loader-calender" id="logList8866" style="display:flex;justify-content:center;margin-top:10%">
+                <img src="{{ asset('/ajax-loader.gif') }}" class="" alt="loader" id="loadertag886612" style="display:none">
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="row">
+                <table class="table table-bordered">
+                    <thead>
+                        <th>No</th>
+                        <th>Title</th>
+                        <th>Units</th>
+                        <th>Value</th>
+                        <th>Answer Date</th>
+                    </thead>
+                    <tbody id="reading_id">
+
+                    </tbody>
+                </table>
+            </div>
+            
+            
+        </div>
+        <div class="col-md-12 mt-3" id="pagin">
+            <a class="pull-right btn btn-secondary btn-rounded  btn-sm" href="javascript:void(0)" id="previousId" style="display:none" onClick="previous()">Prev</a></li>
+            <a class="pull-right btn btn-primary btn-rounded  btn-sm" href="javascript:void(0)" id="nextId" style="display:none"   onClick="next()">Next</a></li>
+        </div>
+    </div>
+</div>

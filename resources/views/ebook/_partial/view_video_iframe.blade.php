@@ -1,0 +1,1 @@
+<iframe src="{{ $url}}" id="iframe" style="width:100%; height:350px;" frameborder="0"></iframe>
