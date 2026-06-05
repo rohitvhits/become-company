@@ -3,15 +3,13 @@
 /*
  * This file is part of Psy Shell.
  *
- * (c) 2012-2026 Justin Hileman
+ * (c) 2012-2025 Justin Hileman
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
 
 namespace Psy\Manual;
-
-use Psy\Exception\InvalidManualException;
 
 /**
  * V3 manual format loader.
@@ -33,7 +31,7 @@ class V3Manual implements ManualInterface
      *
      * @param string $filePath Path to the PHP manual file
      *
-     * @throws InvalidManualException if file doesn't return a valid manual data object
+     * @throws \InvalidArgumentException if file doesn't return a valid manual data object
      */
     public function __construct(string $filePath)
     {
@@ -42,29 +40,19 @@ class V3Manual implements ManualInterface
         if (isset(self::$cache[$filePath])) {
             $data = self::$cache[$filePath];
         } else {
-            // Suppress output from invalid/corrupted manual files
-            \ob_start();
-            try {
-                /** @var mixed $data */
-                $data = require $filePath;
-            } finally {
-                \ob_end_clean();
-            }
-            // @phan-suppress-next-line PhanPossiblyUndeclaredVariable $data is always set above
+            $data = require $filePath;
             self::$cache[$filePath] = $data;
         }
 
         // Validate that the file returned an object with the expected interface
-        // @phan-suppress-next-line PhanPossiblyUndeclaredVariable $data is always set above
         if (!\is_object($data)) {
-            throw new InvalidManualException(\sprintf('Manual file "%s" must return an object, got %s', $filePath, \gettype($data)), $filePath);
+            throw new \InvalidArgumentException(\sprintf('Manual file "%s" must return an object, got %s', $filePath, \gettype($data)));
         }
 
         $requiredMethods = ['get', 'getMeta'];
         foreach ($requiredMethods as $method) {
-            // @phan-suppress-next-line PhanPossiblyUndeclaredVariable $data is always set above
             if (!\method_exists($data, $method)) {
-                throw new InvalidManualException(\sprintf('Manual data object must have a %s() method', $method), $filePath);
+                throw new \InvalidArgumentException(\sprintf('Manual data object must have a %s() method', $method));
             }
         }
 
@@ -72,7 +60,7 @@ class V3Manual implements ManualInterface
         $meta = $data->getMeta();
         if (!isset($meta['version']) || !\preg_match('/^3\./', (string) $meta['version'])) {
             $version = $meta['version'] ?? 'unknown';
-            throw new InvalidManualException(\sprintf('Manual file "%s" must be v3.x format, got version %s', $filePath, $version), $filePath);
+            throw new \InvalidArgumentException(\sprintf('Manual file "%s" must be v3.x format, got version %s', $filePath, $version));
         }
 
         $this->data = $data;

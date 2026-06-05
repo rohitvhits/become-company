@@ -4,7 +4,7 @@
  * This file is part of the Predis package.
  *
  * (c) 2009-2020 Daniele Alessandri
- * (c) 2021-2026 Till Krüss
+ * (c) 2021-2025 Till Krüss
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -15,8 +15,6 @@ namespace Predis\Connection;
 use InvalidArgumentException;
 use Predis\Command\RawCommand;
 use Predis\NotSupportedException;
-use Predis\Retry\Strategy\EqualBackoff;
-use Predis\Retry\Strategy\ExponentialBackoff;
 use Relay\Relay;
 
 class RelayFactory extends Factory
@@ -66,7 +64,7 @@ class RelayFactory extends Factory
         }
 
         $initializer = $this->schemes[$scheme];
-        $client = $this->createClient($parameters);
+        $client = $this->createClient();
 
         $connection = new $initializer($parameters, $client);
 
@@ -92,7 +90,7 @@ class RelayFactory extends Factory
      *
      * @return Relay
      */
-    private function createClient(ParametersInterface $parameters)
+    private function createClient()
     {
         $client = new Relay();
 
@@ -102,49 +100,25 @@ class RelayFactory extends Factory
         // use reply literals
         $client->setOption(Relay::OPT_REPLY_LITERAL, true);
 
+        // disable Relay's command/connection retry
+        $client->setOption(Relay::OPT_MAX_RETRIES, 0);
+
         // whether to use in-memory caching
-        $client->setOption(Relay::OPT_USE_CACHE, $parameters->cache ?? true);
+        $client->setOption(Relay::OPT_USE_CACHE, $this->parameters->cache ?? true);
 
         // set data serializer
         $client->setOption(Relay::OPT_SERIALIZER, constant(sprintf(
             '%s::SERIALIZER_%s',
             Relay::class,
-            strtoupper($parameters->serializer ?? 'none')
+            strtoupper($this->parameters->serializer ?? 'none')
         )));
 
         // set data compression algorithm
         $client->setOption(Relay::OPT_COMPRESSION, constant(sprintf(
             '%s::COMPRESSION_%s',
             Relay::class,
-            strtoupper($parameters->compression ?? 'none')
+            strtoupper($this->parameters->compression ?? 'none')
         )));
-
-        if ($parameters->isDisabledRetry()) {
-            $client->setOption(Relay::OPT_MAX_RETRIES, 0);
-        } else {
-            $client->setOption(Relay::OPT_MAX_RETRIES, $parameters->retry->getRetries());
-
-            $retryStrategy = $parameters->retry->getStrategy();
-
-            if ($retryStrategy instanceof ExponentialBackoff) {
-                $algorithm = Relay::BACKOFF_ALGORITHM_FULL_JITTER;
-                $base = $retryStrategy->getBase();
-                $cap = $retryStrategy->getCap();
-            } else {
-                $algorithm = Relay::BACKOFF_ALGORITHM_DEFAULT;
-
-                if ($retryStrategy instanceof EqualBackoff) {
-                    $base = $cap = $retryStrategy->compute(0);
-                } else {
-                    $base = $retryStrategy::DEFAULT_BASE;
-                    $cap = $retryStrategy::DEFAULT_CAP;
-                }
-            }
-
-            $client->setOption(Relay::OPT_BACKOFF_ALGORITHM, $algorithm);
-            $client->setOption(Relay::OPT_BACKOFF_BASE, $base / 1000);
-            $client->setOption(Relay::OPT_BACKOFF_CAP, $cap / 1000);
-        }
 
         return $client;
     }

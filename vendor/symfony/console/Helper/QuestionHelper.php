@@ -316,14 +316,14 @@ class QuestionHelper extends Helper
                     if ($numMatches > 0 && -1 !== $ofs) {
                         $ret = (string) $matches[$ofs];
                         // Echo out remaining chars for current match
-                        $remainingCharacters = substr($ret, \strlen($this->mostRecentlyEnteredValue($fullChoice)));
+                        $remainingCharacters = substr($ret, \strlen(trim($this->mostRecentlyEnteredValue($fullChoice))));
                         $output->write($remainingCharacters);
                         $fullChoice .= $remainingCharacters;
                         $i = (false === $encoding = mb_detect_encoding($fullChoice, null, true)) ? \strlen($fullChoice) : mb_strlen($fullChoice, $encoding);
 
                         $matches = array_filter(
                             $autocomplete($ret),
-                            static fn ($match) => '' === $ret || str_starts_with($match, $ret)
+                            fn ($match) => '' === $ret || str_starts_with($match, $ret)
                         );
                         $numMatches = \count($matches);
                         $ofs = -1;
@@ -370,7 +370,7 @@ class QuestionHelper extends Helper
             if ($numMatches > 0 && -1 !== $ofs) {
                 $cursor->savePosition();
                 // Write highlighted text, complete the partially entered response
-                $charactersEntered = \strlen($this->mostRecentlyEnteredValue($fullChoice));
+                $charactersEntered = \strlen(trim($this->mostRecentlyEnteredValue($fullChoice)));
                 $output->write('<hl>'.OutputFormatter::escapeTrailingBackslash(substr($matches[$ofs], $charactersEntered)).'</hl>');
                 $cursor->restorePosition();
             }
@@ -437,7 +437,9 @@ class QuestionHelper extends Helper
             throw new RuntimeException('Unable to hide the response.');
         }
 
-        $value = $this->doReadInput($inputStream, helper: $inputHelper);
+        $inputHelper?->waitForInput();
+
+        $value = fgets($inputStream, 4096);
 
         if (4095 === \strlen($value)) {
             $errOutput = $output instanceof ConsoleOutputInterface ? $output->getErrorOutput() : $output;
@@ -447,6 +449,9 @@ class QuestionHelper extends Helper
         // Restore the terminal so it behaves normally again
         $inputHelper?->finish();
 
+        if (false === $value) {
+            throw new MissingInputException('Aborted.');
+        }
         if ($trimmable) {
             $value = trim($value);
         }
@@ -474,8 +479,6 @@ class QuestionHelper extends Helper
 
             try {
                 return $question->getValidator()($interviewer());
-            } catch (MissingInputException $e) {
-                throw $error ?? $e;
             } catch (RuntimeException $e) {
                 throw $e;
             } catch (\Exception $error) {
@@ -508,7 +511,7 @@ class QuestionHelper extends Helper
     {
         if (!$question->isMultiline()) {
             $cp = $this->setIOCodepage();
-            $ret = $this->doReadInput($inputStream);
+            $ret = fgets($inputStream, 4096);
 
             return $this->resetIOCodepage($cp, $ret);
         }
@@ -518,8 +521,14 @@ class QuestionHelper extends Helper
             return false;
         }
 
+        $ret = '';
         $cp = $this->setIOCodepage();
-        $ret = $this->doReadInput($multiLineStreamReader, "\x4");
+        while (false !== ($char = fgetc($multiLineStreamReader))) {
+            if ("\x4" === $char || \PHP_EOL === "{$ret}{$char}") {
+                break;
+            }
+            $ret .= $char;
+        }
 
         if (stream_get_meta_data($inputStream)['seekable']) {
             fseek($inputStream, ftell($multiLineStreamReader));
@@ -588,36 +597,5 @@ class QuestionHelper extends Helper
         }
 
         return $cloneStream;
-    }
-
-    /**
-     * @param resource $inputStream
-     */
-    private function doReadInput($inputStream, ?string $exitChar = null, ?TerminalInputHelper $helper = null): string
-    {
-        $ret = '';
-        $helper ??= new TerminalInputHelper($inputStream, false);
-
-        while (!feof($inputStream)) {
-            $helper->waitForInput();
-            $char = fread($inputStream, 1);
-
-            // as opposed to fgets(), fread() returns an empty string when the stream content is empty, not false.
-            if (false === $char || ('' === $ret && '' === $char)) {
-                throw new MissingInputException('Aborted.');
-            }
-
-            if (\PHP_EOL === "{$ret}{$char}" || $exitChar === $char) {
-                break;
-            }
-
-            $ret .= $char;
-
-            if (null === $exitChar && "\n" === $char) {
-                break;
-            }
-        }
-
-        return $ret;
     }
 }

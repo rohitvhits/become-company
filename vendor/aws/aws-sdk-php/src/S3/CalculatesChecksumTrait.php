@@ -8,7 +8,7 @@ use InvalidArgumentException;
 
 trait CalculatesChecksumTrait
 {
-    public static array $supportedAlgorithms = [
+    private static $supportedAlgorithms = [
         'crc32c' => true,
         'crc32' => true,
         'sha256' => true,
@@ -47,13 +47,7 @@ trait CalculatesChecksumTrait
             if ($requestedAlgorithm === "crc32") {
                 $requestedAlgorithm = "crc32b";
             }
-
-            return base64_encode(
-                Psr7\Utils::hash(Psr7\Utils::streamFor($value),
-                    $requestedAlgorithm,
-                    true
-                )
-            );
+            return base64_encode(Psr7\Utils::hash($value, $requestedAlgorithm, true));
         }
 
         $validAlgorithms = implode(', ', array_keys(self::$supportedAlgorithms));
@@ -61,24 +55,5 @@ trait CalculatesChecksumTrait
             "Invalid checksum requested: {$requestedAlgorithm}."
             . "  Valid algorithms supported by the runtime are {$validAlgorithms}."
         );
-    }
-
-    /**
-     * Returns the first checksum available, if available.
-     *
-     * @param array $parameters
-     *
-     * @return string|null
-     */
-    public static function filterChecksum(array $parameters): ?string
-    {
-        foreach (self::$supportedAlgorithms as $algorithm => $_) {
-            $checksumAlgorithm = "Checksum" . strtoupper($algorithm);
-            if (isset($parameters[$checksumAlgorithm])) {
-                return $checksumAlgorithm;
-            }
-        }
-
-        return null;
     }
 }

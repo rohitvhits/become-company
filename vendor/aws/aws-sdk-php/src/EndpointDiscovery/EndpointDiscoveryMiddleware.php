@@ -21,7 +21,7 @@ class EndpointDiscoveryMiddleware
     private static $discoveryCooldown = 60;
 
     private $args;
-    private \WeakReference $client;
+    private $client;
     private $config;
     private $discoveryTimes = [];
     private $nextHandler;
@@ -32,15 +32,14 @@ class EndpointDiscoveryMiddleware
         $args,
         $config
     ) {
-        $clientRef = \WeakReference::create($client);
         return function (callable $handler) use (
-            $clientRef,
+            $client,
             $args,
             $config
         ) {
             return new static(
                 $handler,
-                $clientRef->get(),
+                $client,
                 $args,
                 $config
             );
@@ -54,7 +53,7 @@ class EndpointDiscoveryMiddleware
         $config
     ) {
         $this->nextHandler = $handler;
-        $this->client = \WeakReference::create($client);
+        $this->client = $client;
         $this->args = $args;
         $this->service = $client->getApi();
         $this->config = $config;
@@ -92,7 +91,7 @@ class EndpointDiscoveryMiddleware
                 $identifiers = $this->getIdentifiers($op);
 
                 $cacheKey = $this->getCacheKey(
-                    $this->client->get()->getCredentials()->wait(),
+                    $this->client->getCredentials()->wait(),
                     $cmd,
                     $identifiers
                 );
@@ -179,7 +178,7 @@ class EndpointDiscoveryMiddleware
     ) {
         $discCmd = $this->getDiscoveryCommand($cmd, $identifiers);
         $this->discoveryTimes[$cacheKey] = time();
-        $result = $this->client->get()->execute($discCmd);
+        $result = $this->client->execute($discCmd);
 
         if (isset($result['Endpoints'])) {
             $endpointData = [];
@@ -238,7 +237,7 @@ class EndpointDiscoveryMiddleware
                 $params['Identifiers'][$identifier] = $cmd[$identifier];
             }
         }
-        $command = $this->client->get()->getCommand($endpointOperation, $params);
+        $command = $this->client->getCommand($endpointOperation, $params);
         $command->getHandlerList()->appendBuild(
             Middleware::mapRequest(function (RequestInterface $r) {
                 return $r->withHeader(
@@ -323,8 +322,8 @@ class EndpointDiscoveryMiddleware
 
             // If no more cached endpoints, make discovery call
             // if none made within cooldown for given key
-            if (isset($this->discoveryTimes[$cacheKey])
-                && time() - $this->discoveryTimes[$cacheKey] < self::$discoveryCooldown
+            if (time() - $this->discoveryTimes[$cacheKey]
+                < self::$discoveryCooldown
             ) {
 
                 // If no more cached endpoints and it's required,

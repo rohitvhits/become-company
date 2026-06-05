@@ -4,7 +4,7 @@
  * This file is part of the Predis package.
  *
  * (c) 2009-2020 Daniele Alessandri
- * (c) 2021-2026 Till Krüss
+ * (c) 2021-2025 Till Krüss
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -207,27 +207,7 @@ class Stream implements StreamInterface
 
         $result = fwrite($this->stream, $string);
 
-        if ($result === false || $result === 0) {
-            $metadata = $this->getMetadata();
-
-            if ($this->eof()) {
-                throw new RuntimeException('Connection closed by peer during write', 1);
-            }
-
-            if (!is_resource($this->stream)) {
-                throw new RuntimeException(
-                    'Stream resource is no longer valid',
-                    1
-                );
-            }
-
-            if (array_key_exists('timed_out', $metadata) && $metadata['timed_out']) {
-                throw new RuntimeException(
-                    'Stream has been timed out',
-                    2
-                );
-            }
-
+        if ($result === false) {
             throw new RuntimeException('Unable to write to stream', 1);
         }
 
@@ -272,26 +252,6 @@ class Stream implements StreamInterface
         }
 
         if (false === $string) {
-            $metadata = $this->getMetadata();
-
-            if ($this->eof()) {
-                throw new RuntimeException('Connection closed by peer during read', 1);
-            }
-
-            if (!is_resource($this->stream)) {
-                throw new RuntimeException(
-                    'Stream resource is no longer valid',
-                    1
-                );
-            }
-
-            if (array_key_exists('timed_out', $metadata) && $metadata['timed_out']) {
-                throw new RuntimeException(
-                    'Stream has been timed out',
-                    2
-                );
-            }
-
             throw new RuntimeException('Unable to read from stream', 1);
         }
 
