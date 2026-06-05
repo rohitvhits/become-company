@@ -1,0 +1,2 @@
+Record Type(Patient/Caregiver),First Name,Last Name,Date of Birth(Y-m-d),Phone,Mobile No,Gender(Male/Female),Language,Service,ServiceExpiry Date(Y-m-d)
+Caregiver,John,Test,11/12/1990,54215412541,5874587458,Male,English,Test,12/24/2020

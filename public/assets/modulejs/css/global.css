@@ -1,0 +1,302 @@
+/* New Dashboard Design */
+/* scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+  -webkit-border-radius: 10px;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  -webkit-border-radius: 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.3);
+  -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
+}
+
+::-webkit-scrollbar-thumb:window-inactive {
+  background: rgba(255, 255, 255, 0.3);
+}
+  .cust-dashboard-box .info-box {
+    box-shadow: 0 0 1px rgba(0, 0, 0, 0.125), 0 1px 3px rgba(0, 0, 0, 0.2);
+    border-radius: 0.25rem;
+    background: #fff;
+    display: -ms-flexbox;
+    display: flex;
+    margin-bottom: 1rem;
+    min-height: 80px;
+    padding: 0.5rem;
+    position: relative;
+    width: 100%;
+  }
+  .cust-dashboard-box .info-box .info-box-icon {
+    border-radius: 0.25rem;
+    -ms-flex-align: center;
+    align-items: center;
+    display: -ms-flexbox;
+    display: flex;
+    font-size: 1.875rem;
+    -ms-flex-pack: center;
+    justify-content: center;
+    text-align: center;
+    width: 70px;
+  }
+  .cust-dashboard-box .info-box .info-box-content {
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    -ms-flex-pack: center;
+    justify-content: center;
+    line-height: 120%;
+    -ms-flex: 1;
+    flex: 1;
+    padding: 0 10px;
+  }
+  .cust-dashboard-box .info-box .info-box-text {
+    font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI",
+      Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji",
+      "Segoe UI Emoji", "Segoe UI Symbol";
+    font-weight: bold;
+    line-height: normal;
+    margin-bottom: 0.25rem;
+  }
+  .cust-dashboard-box .info-box .info-box-number {
+    font-weight: 700;
+    font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI",
+      Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji",
+      "Segoe UI Emoji", "Segoe UI Symbol";
+  }
+  /* Box Card */
+  .dash-side-box .info-box.card {
+    padding: 20px;
+  }
+  .dash-side-box .info-box .title h5 {
+    position: relative;
+    font-size: 15px;
+    line-height: 25px;
+    font-weight: 500;
+    background: #f1f1f1;
+    padding: 8px 10px;
+    border-radius: 6px;
+  }
+  .dash-side-box .basic-detail-row {
+    padding: 0 10px;
+  }
+  .dash-side-box .info-box .row.btm-brder {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #f1f1f1;
+  }
+  .dash-side-box .info-box dt {
+    margin: 0;
+    font-size: 13px !important;
+    line-height: 1.2;
+    font-size: 0.875rem;
+    color: #1c273c;
+    text-align: left;
+    font-weight: 400;
+  }
+  .dash-side-box .info-box dd {
+    margin: 0;
+    font-size: 13px !important;
+    line-height: 1.2;
+    font-size: 0.875rem;
+    color: darkgrey;
+    text-align: end;
+    font-weight: 400;
+  }
+  
+  .dash-sm-card .bg-warning {
+    background-color: #ffc107 !important;
+  }
+  .dash-sm-card .bg-success {
+    background-color: #28a745 !important;
+  }
+  .dash-sm-card .bg-danger {
+    background-color: #dc3545 !important;
+  }
+  .dash-sm-card .bg-secondary {
+    background-color: #6c757d !important;
+  }
+  .dash-sm-card .small-box {
+    border-radius: 0.25rem;
+    box-shadow: 0 0 1px rgba(0, 0, 0, 0.125), 0 1px 3px rgba(0, 0, 0, 0.2);
+    display: block;
+    margin-bottom: 20px;
+    position: relative;
+  }
+  .dash-sm-card .small-box > .inner {
+    padding: 10px;
+  }
+  .dash-sm-card .small-box h3 {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 10px 0;
+    padding: 0;
+    white-space: nowrap;
+    font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI",
+      Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji",
+      "Segoe UI Emoji", "Segoe UI Symbol";
+    z-index: 5;
+    color:#fff;
+  }
+  .dash-sm-card .small-box p {
+    font-size: 14px;
+    font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI",
+      Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji",
+      "Segoe UI Emoji", "Segoe UI Symbol";
+    font-weight: 500;
+    color:#fff;
+  }
+  
+  .dash-sm-card .small-box .icon {
+    color: rgba(0, 0, 0, 0.15);
+    z-index: 0;
+  }
+  .dash-sm-card .small-box .icon > i.fa,
+  .dash-sm-card .small-box .icon > i.fab,
+  .dash-sm-card .small-box .icon > i.far,
+  .dash-sm-card .small-box .icon > i.fas,
+  .dash-sm-card .small-box .icon > i.glyphicon,
+  .dash-sm-card .small-box .icon > i.ion {
+    font-size: 70px;
+    top: 20px;
+  }
+  .dash-sm-card .small-box:hover .icon > i,
+  .dash-sm-card .small-box:hover .icon > i.fa,
+  .dash-sm-card .small-box:hover .icon > i.fab,
+  .dash-sm-card .small-box:hover .icon > i.far,
+  .dash-sm-card .small-box:hover .icon > i.fas,
+  .dash-sm-card .small-box:hover .icon > i.glyphicon,
+  .dash-sm-card .small-box:hover .icon > i.ion {
+    -webkit-transform: scale(1.1);
+    transform: scale(1.1);
+  }
+  .dash-sm-card .small-box > .small-box-footer {
+    background: rgba(0, 0, 0, 0.1);
+    color: rgba(255, 255, 255, 0.8);
+    display: block;
+    padding: 3px 0;
+    position: relative;
+    text-decoration: none;
+    z-index: 10;
+    font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI",
+      Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji",
+      "Segoe UI Emoji", "Segoe UI Symbol";
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-weight: 600;
+  }
+  .dash-sm-card .small-box .icon > i {
+    font-size: 90px;
+    position: absolute;
+    right: 15px;
+    top: 15px;
+    transition: -webkit-transform 0.3slinear;
+    transition: transform 0.3slinear;
+    transition: transform 0.3slinear, -webkit-transform 0.3slinear;
+  }
+  .dash-side-box .row.btm-brder .col-md-10{
+    padding-left: 0;
+    padding-right: 0;
+  }
+  
+.dash-side-box .info-box.card.p-0 {
+  padding: 0;
+  border-radius: 4px;
+}
+.dash-side-box .info-box.card.p-0 .title h5{
+  border-radius: 0;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+  border-bottom: 1px solid #d7d7d7;
+  background-color: #fff;
+  color: #000;
+}
+
+
+.small-box-footer-link{
+    display: block;
+    position: relative;
+    text-decoration: none;
+    font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-weight: 600;
+}
+
+.shimmer-loader {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+  border-radius: 4px;
+  height : 10px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.small-box.shimmer {
+  position: relative; /* Required for positioning the shimmer effect */
+  overflow: hidden; /* Hide the shimmer effect outside the card */
+}
+
+.small-box.shimmer:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to right, 
+    rgba(255, 255, 255, 0) 0%, 
+    rgba(255, 255, 255, 0.5) 50%, 
+    rgba(255, 255, 255, 0) 100%);
+  animation: shimmerloaade 2s infinite; /* Adjust animation duration as needed */
+}
+
+@keyframes shimmerloaade {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+/* .recent-height{
+  height: 100vh;
+} */
+
+.select2-selection__choice {
+  max-width: 150px;  /* Adjust width as needed */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+.select2-selection__rendered {
+  display: flex;
+  flex-wrap: wrap;
+  max-height: 30px; /* Adjust height if needed */
+  overflow-y: auto !important;
+}
+
+.select2-container--default .select2-selection--multiple {
+  min-height: 30px;
+}

@@ -1,0 +1,674 @@
+/* ===== Invoice Module Styles - YoraUI Theme ===== */
+/* Matching YoraUI Admin theme colors and design patterns */
+
+/* Page Layout */
+.invoice-page-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.invoice-page-title {
+    color: #495057;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.invoice-page-subtitle {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+/* Stats Cards */
+.invoice-stats-card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transition: all 0.3s ease;
+    margin-bottom: 1.5rem;
+}
+
+.invoice-stats-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.invoice-stats-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.invoice-stats-icon.primary {
+    background: linear-gradient(135deg, #36a9f3 0%, #71beee 100%);
+    color: white;
+}
+
+.invoice-stats-icon.warning {
+    background: linear-gradient(135deg, #f6e84e 0%, #f2a654 100%);
+    color: white;
+}
+
+.invoice-stats-icon.success {
+    background: linear-gradient(135deg, #46c35f 0%, #58d8a3 100%);
+    color: white;
+}
+
+.invoice-stats-icon.danger {
+    background: linear-gradient(135deg, #f96868 0%, #E91E63 100%);
+    color: white;
+}
+
+/* Tables */
+.invoice-table {
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #e9ecef;
+}
+
+.invoice-table .table {
+    margin-bottom: 0;
+}
+
+.invoice-table .table th {
+    background-color: #f8f9fa;
+    border-top: none;
+    border-bottom: 2px solid #e9ecef;
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 1rem 0.75rem;
+}
+
+.invoice-table .table td {
+    padding: 1rem 0.75rem;
+    vertical-align: middle;
+    border-top: 1px solid #e9ecef;
+}
+
+.invoice-table .table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* Status Badges */
+.invoice-status-badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.5rem 0.75rem;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.invoice-status-badge.paid {
+    background: linear-gradient(135deg, #46c35f 0%, #58d8a3 100%);
+    color: white;
+}
+
+.invoice-status-badge.sent {
+    background: linear-gradient(135deg, #36a9f3 0%, #71beee 100%);
+    color: white;
+}
+
+.invoice-status-badge.overdue {
+    background: linear-gradient(135deg, #f96868 0%, #E91E63 100%);
+    color: white;
+}
+
+.invoice-status-badge.draft {
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+    color: white;
+}
+
+/* Action Buttons */
+.invoice-action-btn {
+    margin-right: 0.25rem;
+    transition: all 0.2s ease;
+    margin-left: 0;
+    max-height: none;
+    border-radius: 5px;
+    border: 0;
+}
+
+.invoice-action-btn:last-child {
+    margin-right: 0;
+}
+
+.invoice-action-btn.view {
+    background-color: #36a9f3;
+    border-color: #36a9f3;
+    color: white;
+}
+
+.invoice-action-btn.view:hover {
+    background-color: #57c7d4;
+    border-color: #57c7d4;
+}
+
+.invoice-action-btn.download {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+}
+
+.invoice-action-btn.download:hover {
+    background-color: #5a6268;
+    border-color: #5a6268;
+}
+
+.invoice-action-btn.pay {
+    background: linear-gradient(135deg, #46c35f 0%, #58d8a3 100%);
+    border: none;
+    color: white;
+}
+
+.invoice-action-btn.pay:hover {
+    background: linear-gradient(135deg, #58d8a3 0%, #46c35f 100%);
+}
+
+/* Filters Card */
+.invoice-filters-card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    margin-bottom: 1.5rem;
+}
+
+.invoice-filters-card .card-body {
+    padding: 1.5rem;
+}
+
+.invoice-filter-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.invoice-filter-control {
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+    padding: 0.5rem 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.invoice-filter-control:focus {
+    border-color: #36a9f3;
+    box-shadow: 0 0 0 0.2rem rgba(0, 187, 224, 0.25);
+}
+
+/* Buttons */
+.invoice-btn-primary {
+    background: linear-gradient(135deg, #36a9f3 0%, #71beee 100%);
+    border: none;
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.invoice-btn-primary:hover {
+    background: linear-gradient(135deg, #71beee 0%, #36a9f3 100%);
+}
+
+.invoice-btn-outline {
+    background: transparent;
+    border: 2px solid #36a9f3;
+    color: #36a9f3;
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.invoice-btn-outline:hover {
+    background: #36a9f3;
+    color: white;
+    transform: translateY(-1px);
+}
+
+/* Amount Display */
+.invoice-amount {
+    font-size: initial !important;
+    font-weight: 700;
+}
+
+.invoice-amount.success {
+    color: #46c35f;
+}
+
+.invoice-amount.danger {
+    color: #f96868;
+}
+
+.invoice-amount.warning {
+    color: #f2a654;
+}
+
+/* Empty State */
+.invoice-empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+}
+
+.invoice-empty-state .empty-icon {
+    font-size: 4rem;
+    color: #e9ecef;
+    margin-bottom: 1rem;
+}
+
+.invoice-empty-state h5 {
+    color: #6c757d;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.invoice-empty-state p {
+    color: #adb5bd;
+    margin-bottom: 1.5rem;
+}
+
+/* Breadcrumb */
+.invoice-breadcrumb {
+    background-color: transparent;
+    padding: 0;
+    margin-bottom: 1rem;
+}
+
+.invoice-breadcrumb .breadcrumb-item {
+    font-size: 0.875rem;
+}
+
+.invoice-breadcrumb .breadcrumb-item a {
+    color: #36a9f3;
+    text-decoration: none;
+}
+
+.invoice-breadcrumb .breadcrumb-item a:hover {
+    color: #57c7d4;
+}
+
+.invoice-breadcrumb .breadcrumb-item.active {
+    color: #6c757d;
+}
+
+/* Invoice Details */
+.invoice-details-card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.invoice-details-table {
+    margin-bottom: 0;
+}
+
+.invoice-details-table td {
+    padding: 0.5rem 0;
+    border: none;
+}
+
+.invoice-details-table .label {
+    font-weight: 600;
+    color: #495057;
+    width: 40%;
+}
+
+.invoice-details-table .value {
+    color: #6c757d;
+}
+
+/* Payment History */
+.payment-history-item {
+    border-left: 3px solid #28a745;
+    padding-left: 1rem;
+    margin-bottom: 1rem;
+}
+
+.payment-history-item.failed {
+    border-left-color: #dc3545;
+}
+
+.payment-history-item.pending {
+    border-left-color: #ffc107;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .invoice-stats-card {
+        margin-bottom: 1rem;
+    }
+
+    .invoice-action-btn {
+        margin-bottom: 0.25rem;
+        margin-right: 0;
+        width: 100%;
+    }
+
+    .invoice-table .table th,
+    .invoice-table .table td {
+        padding: 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    .invoice-filters-card .card-body {
+        padding: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .invoice-page-header {
+        margin-bottom: 1rem;
+    }
+
+    .invoice-stats-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.25rem;
+    }
+
+    .invoice-amount {
+        font-size: initial !important;
+    }
+}
+
+/* Animation Classes */
+.fade-in {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Print Styles */
+@media print {
+    .invoice-action-btn,
+    .invoice-filters-card,
+    .invoice-page-header .col-auto {
+        display: none !important;
+    }
+
+    .invoice-table,
+    .invoice-stats-card {
+        box-shadow: none !important;
+        border: 1px solid #ddd !important;
+    }
+}
+
+/* YoraUI Theme Integration Styles */
+.invoice-module-wrapper {
+    font-family: inherit;
+}
+
+/* Admin Invoice Module Page Header Styles */
+.page-title-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.page-title-main h5 {
+    margin: 0;
+    color: #495057;
+    font-weight: 600;
+}
+
+.page-rightbtns {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.page-rightbtns .btn {
+    display: inline-flex;
+    align-items: center;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.page-rightbtns .btn i {
+    margin-right: 0.5rem;
+    font-size: 1rem;
+}
+
+/* Admin Invoice Table and Card Styles */
+.admin-invoice-stats .card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transition: all 0.3s ease;
+}
+
+.admin-invoice-stats .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.admin-invoice-stats .card-body {
+    padding: 1.5rem;
+}
+
+/* Responsive page header */
+@media (max-width: 768px) {
+    .page-title-main {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .page-rightbtns {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .page-title-main h5 {
+        font-size: 1.25rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .page-title-main {
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+    }
+
+    .page-rightbtns {
+        justify-content: center;
+    }
+
+    .page-rightbtns .btn {
+        font-size: 0.875rem;
+        padding: 0.5rem 1rem;
+    }
+}
+
+/* Better integration with YoraUI horizontal layout */
+.main-panel .content-wrapper .invoice-page-header {
+    background: transparent;
+    padding: 0;
+}
+
+/* Enhanced hover effects matching YoraUI style */
+.invoice-stats-card:hover {
+    box-shadow: 0 0.5rem 2rem rgba(117, 113, 249, 0.15) !important;
+}
+
+.invoice-table:hover {
+    box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.1) !important;
+}
+
+/* YoraUI button style inheritance */
+.invoice-btn-primary:focus,
+.invoice-btn-outline:focus {
+    box-shadow: 0 0 0 0.2rem rgba(117, 113, 249, 0.25);
+}
+
+/* Enhanced mobile responsiveness for YoraUI */
+@media (max-width: 480px) {
+    .invoice-page-title {
+        font-size: 1.1rem;
+    }
+
+    .invoice-stats-card .card-body {
+        padding: 0.75rem;
+    }
+
+    .invoice-stats-icon {
+        width: 35px;
+        height: 35px;
+        font-size: 1rem;
+    }
+
+    .invoice-amount {
+        font-size: initial !important;
+    }
+
+    /* Stack elements better on very small screens */
+    .col-lg-3.col-md-6 {
+        margin-bottom: 1rem;
+    }
+}
+
+/* Additional YoraUI Agency Invoice Styles */
+.agency-invoice-wrapper {
+    font-family: inherit;
+}
+
+/* Ensure proper YoraUI card styling for agency views */
+.agency-invoice-wrapper .card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transition: all 0.3s ease;
+}
+
+.agency-invoice-wrapper .card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* YoraUI grid-margin and stretch-card compatibility */
+.grid-margin {
+    margin-bottom: 1.875rem;
+}
+
+.stretch-card > .card {
+    height: 100%;
+    min-height: 100%;
+}
+
+/* Agency breadcrumb styling */
+.agency-invoice-wrapper .breadcrumb {
+    background-color: transparent;
+    padding: 0;
+    margin-bottom: 0.5rem;
+}
+
+.agency-invoice-wrapper .breadcrumb-item {
+    font-size: 0.875rem;
+}
+
+.agency-invoice-wrapper .breadcrumb-item a {
+    color: #36a9f3;
+    text-decoration: none;
+}
+
+.agency-invoice-wrapper .breadcrumb-item a:hover {
+    color: #5E50F9;
+}
+
+.agency-invoice-wrapper .breadcrumb-item.active {
+    color: #6c757d;
+}
+
+/* Agency table improvements */
+.agency-invoice-wrapper .table th {
+    background-color: #f8f9fa;
+    border-top: none;
+    border-bottom: 2px solid #e9ecef;
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 1rem 0.75rem;
+}
+
+.agency-invoice-wrapper .table td {
+    padding: 1rem 0.75rem;
+    vertical-align: middle;
+    border-top: 1px solid #e9ecef;
+}
+
+.agency-invoice-wrapper .table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* Agency badge improvements */
+.agency-invoice-wrapper .badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.5rem 0.75rem;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Agency button improvements */
+.agency-invoice-wrapper .btn-group .btn {
+    border-radius: 0.375rem;
+    margin-right: 0.25rem;
+    transition: all 0.2s ease;
+}
+
+.agency-invoice-wrapper .btn-group .btn:last-child {
+    margin-right: 0;
+}
+
+.agency-invoice-wrapper .btn-group .btn:hover {
+    transform: translateY(-1px);
+}
+
+.btn-search{
+    left: 25%;
+    cursor: pointer;
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+input[type="radio"]:checked + .stretch-card {
+  border-color: #007bff;
+  background-color: #e6f0ff;
+}
+
+.admin-btn-search{
+    width: 90%;
+    left: 46%;
+    cursor: pointer;
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+input[name="invoice_type"] {
+  display: none;
+}
+
+.text-primary {
+    color: #007bff !important;
+}

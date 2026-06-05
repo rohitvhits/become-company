@@ -1,0 +1,393 @@
+.view-button a {
+    text-decoration: none;
+    display: inline-block;
+    padding: 8px 16px;
+}
+
+.card-header a:hover {
+    background-color: #ddd;
+    color: black;
+}
+
+.previous {
+    background-color: #f1f1f1;
+    color: black;
+}
+
+.next {
+    background-color: #04AA6D;
+    color: white;
+}
+
+.round {
+    border-radius: 50%;
+}
+
+/* .appointment-info-card{
+    position: fixed;
+    display: block;
+    margin-top: 250px;
+}    
+
+.ui-datepicker{
+    position: fixed;
+    display: block;
+    width: 297px;
+} */
+table,
+th,
+td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+
+.scroller {
+    width: 100px;
+    height: 50px;
+    overflow-y: scroll;
+    scrollbar-width: thin;
+}
+
+.event_label {
+    color: white;
+    border-radius: 5px;
+    margin-top: -5px;
+    padding: 0px;
+    text-align: center;
+}
+
+.search_button {
+    height: 2.375rem;
+}
+
+.display_inline {
+    display: inline;
+}
+
+.top-right {
+    vertical-align: top !important;
+    text-align: right !important;
+    padding: 0px;
+    height: 137px;
+    width: 140px;
+}
+
+.center {
+    text-align: center !important;
+}
+
+.fc-close {
+    float: left;
+    margin: 4px;
+}
+
+.fc-body.fc-widget-content {
+    height: 200px;
+    overflow: scroll;
+    background-color: white;
+}
+
+.fc-more-popover .fc-event-container {
+    padding: 10px;
+}
+
+.fc .fc-event.fc-start {
+    background: #7571f9;
+    border-radius: 4px;
+    border-left: 4px solid #7571f9;
+}
+
+.fc-event.fc-draggable,
+.fc-event[href],
+.fc-popover .fc-header .fc-close,
+a[data-goto] {
+    cursor: pointer;
+}
+
+.fc .fc-event {
+    border: 0;
+    color: #ffffff;
+    padding: .5rem;
+}
+
+.fc-day-grid-event {
+    margin: 1px 2px 0;
+    padding: 0 1px;
+}
+
+.fc-event {
+    position: relative;
+    display: block;
+    font-size: .85em;
+    line-height: 1.3;
+    border-radius: 3px;
+    border: 1px solid #3a87ad;
+}
+
+.fc-event,
+.fc-event:hover,
+.fc-state-hover,
+.fc.fc-bootstrap3 a,
+.ui-widget .fc-event,
+a.fc-more {
+    text-decoration: none;
+}
+
+.fc-unthemed .fc-popover {
+    background-color: #fff;
+    border-width: 1px;
+    border-style: solid;
+}
+
+.fc-unthemed .fc-divider,
+.fc-unthemed .fc-list-heading td,
+.fc-unthemed .fc-popover .fc-header {
+    background: #eee;
+}
+
+.fc-popover .fc-header {
+    padding: 2px 4px;
+}
+
+.fc-widget-header {
+    border: 0;
+    background-color: #ebeced;
+}
+
+.fc-unthemed .fc-popover .fc-header .fc-close {
+    color: #666;
+    font-size: .9em;
+    margin-top: 2px;
+}
+
+.fc-ltr .fc-popover .fc-header .fc-close,
+.fc-rtl .fc-popover .fc-header .fc-title {
+    float: right;
+}
+
+.fc-event.fc-draggable,
+.fc-event[href],
+.fc-popover .fc-header .fc-close,
+a[data-goto] {
+    cursor: pointer;
+}
+
+.fc-icon {
+    float: right;
+}
+
+.fc-day-grid-event .fc-content,
+.fc-icon,
+.fc-row.fc-rigid,
+.fc-time-grid-event {
+    overflow: hidden;
+}
+
+.loader-sec-new {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background: rgb(0 0 0 / 20%);
+    z-index: 999;
+}
+
+.loader-sec {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background: rgb(0 0 0 / 20%);
+    z-index: 999;
+    height: calc(100vh - 100px);
+    overflow: hidden;
+}
+
+#cover-spin {
+    width: 50px;
+    aspect-ratio: 1;
+    display: grid;
+    border-radius: 50%;
+    background: linear-gradient(0deg, rgb(0 0 0/50%) 30%, #0000 0 70%, rgb(0 0 0/100%) 0) 50%/8% 100%, linear-gradient(90deg, rgb(0 0 0/25%) 30%, #0000 0 70%, rgb(0 0 0/75%) 0) 50%/100% 8%;
+    background-repeat: no-repeat;
+    animation: l23 1s infinite steps(12);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+}
+
+#cover-spin::before,
+#cover-spin::after {
+    content: "";
+    grid-area: 1/1;
+    border-radius: 50%;
+    background: inherit;
+    opacity: 0.915;
+    transform: rotate(30deg);
+}
+
+#cover-spin::after {
+    opacity: 0.83;
+    position: absolute;
+    transform: rotate(60deg);
+}
+
+@keyframes l23 {
+    100% {
+        transform: rotate(1turn)
+    }
+}
+
+.appointment-sticky-contain.fixed-calender {
+    position: fixed;
+    top: 140px;
+    width: 25%;
+    padding-right: 20px;
+}
+
+.ui-datepicker {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.height-content-fixed {
+    max-height: calc(100vh - 200px);
+    overflow: auto;
+    padding-right: 10px;
+    padding-bottom: 30px;
+}
+
+.height-content-fixed::-webkit-scrollbar {
+    width: 5px;
+    border-radius: 30px;
+}
+
+/* Track */
+.height-content-fixed::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 30px;
+}
+
+/* Handle */
+.height-content-fixed::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 30px;
+}
+
+/* Handle on hover */
+.height-content-fixed::-webkit-scrollbar-thumb:hover {
+    background: #555;
+    border-radius: 30px;
+}
+
+.light-gray-color {
+    color: #a2a9b4 !important
+}
+
+/* Calendar Type Selector Styles */
+.calendar-type-selector {
+    padding: 5px 0;
+}
+
+.calendar-type-selector .form-check-inline {
+    margin-right: 15px;
+}
+
+.calendar-type-selector .form-check-input {
+    margin-right: 5px;
+}
+
+.calendar-type-selector .form-check-label {
+    font-weight: 500;
+    color: #333;
+}
+
+.calendar-type-selector .form-check-input:checked + .form-check-label {
+    color: #007bff;
+}
+
+.page-title-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.badge {
+    border-radius: 3px;
+    font-size: 9px;
+    line-height: 1;
+    padding: 4px 4px;
+    font-weight: 500;
+}
+
+.shimmer-calender-loader {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr); /* 7 columns for a calendar week */
+    gap: 10px;
+    height: 100%;
+}
+
+.shimmer-box {
+    height: 100px; /* Adjust based on your calendar cell size */
+    border-radius: 8px;
+    background: linear-gradient(
+        to right,
+        #f0f0f0 0%,
+        #e0e0e0 20%,
+        #f0f0f0 40%,
+        #f0f0f0 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite linear;
+    margin-bottom: 10px;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+button#tele_next_btn:hover {
+    background-color: #04AA6D;
+    color: white;
+    cursor: pointer;
+}
+
+button#tele_prev_btn:hover {
+    background-color: #04AA6D;
+    color: white;
+    cursor: pointer;
+}
+
+.tooltip-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip-text {
+  visibility: hidden;
+  background-color: #333;
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+  position: absolute;
+  z-index: 100;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.tooltip-wrapper:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}

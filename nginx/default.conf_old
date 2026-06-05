@@ -1,0 +1,34 @@
+server {
+    listen 80;
+    server_name docker-nybest.appworkdemo.com;
+    root /var/www/html/public;
+    index index.php index.html index.htm;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+
+    # Allow Certbot to verify ownership of the domain
+    location /.well-known/acme-challenge/ {
+        root /var/www/html; # Ensure this path is correct
+        allow all;
+    }
+
+
+    location ~ \.php$ {
+        include fastcgi_params;
+        fastcgi_pass 0.0.0.0:9000;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        #fastcgi_param PHP_ADMIN_VALUE "open_basedir=$document_root:/tmp/";
+	fastcgi_param PHP_ADMIN_VALUE "open_basedir=/var/www/html:/tmp/";
+    }
+
+    location ~ /\.(ht|env) {
+        deny all;
+    }
+
+    error_log  /var/log/nginx/laravel_error.log;
+    access_log /var/log/nginx/laravel_access.log;
+}

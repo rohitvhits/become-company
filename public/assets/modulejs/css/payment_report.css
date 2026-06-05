@@ -1,0 +1,300 @@
+.hide{
+    display: none;
+}
+.radio-label {
+    display: inline-block;
+    padding: 6px;
+    outline: 1px solid #238be5;
+    padding-right: 50px;
+    background-color: #d5ecff;
+}
+
+.actions {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.page-title-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.token-input-input-token input{
+    width: 100% !important;
+}
+
+.select2-container{
+    width: 100% !important;
+}
+
+.select2-selection__choice {
+  max-width: 150px;  /* Adjust width as needed */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+.select2-selection__rendered {
+  display: flex;
+  flex-wrap: wrap;
+  max-height: 30px; /* Adjust height if needed */
+  overflow-y: auto !important;
+}
+
+.select2-container--default .select2-selection--multiple {
+  min-height: 30px;
+}
+
+.shimmer-loader {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+  border-radius: 4px;
+  height : 10px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.small-box.shimmer {
+  position: relative; /* Required for positioning the shimmer effect */
+  overflow: hidden; /* Hide the shimmer effect outside the card */
+}
+
+.small-box.shimmer:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to right, 
+    rgba(255, 255, 255, 0) 0%, 
+    rgba(255, 255, 255, 0.5) 50%, 
+    rgba(255, 255, 255, 0) 100%);
+  animation: shimmerloaade 2s infinite; /* Adjust animation duration as needed */
+}
+
+@keyframes shimmerloaade {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+.select2-dropdown{
+    z-index: 99 !important;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice{
+    font-size: 12px !important;
+    margin: 2px !important;
+}
+
+/* Sidebar Styling */
+.sidebar {
+    position: fixed;
+    top: 0;
+    right: -500px;
+    width: 500px;
+    height: 100%;
+    background-color: #fff;
+    box-shadow: -3px 0 15px rgba(0, 0, 0, 0.2);
+    overflow-y: auto;
+    transition: right 0.4s ease;
+    z-index: 9999;
+}
+
+.sidebar-header {
+    padding: 15px;
+    background-color: #7bb52e;
+    color: #fff;
+    font-size: 18px;
+    text-align: center;
+    position: relative;
+}
+
+.sidebar-header .close-btn {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    color: #fff;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.sidebar-content {
+    padding: 15px;
+}
+
+/* Footer with Action Buttons */
+.sidebar-footer {
+    padding: 15px;
+    background-color: #f1f1f1;
+    text-align: center;
+    border-top: 1px solid #ccc;
+}
+
+.sidebar-footer button {
+    padding: 10px 15px;
+    margin: 5px;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    background-color: #28a745;
+    color: #fff;
+}
+
+.sidebar-footer button:hover {
+    background-color: #218838;
+}
+
+/* Overlay to Dim Background */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: none;
+    z-index: 9998;
+}
+
+/* Smooth Slide-in for Sidebar */
+.sidebar.show {
+    right: 0;
+}
+
+.overlay.show {
+    display: block;
+}
+
+/* Amount Summary Styles */
+.amount-summary {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.amount-summary p {
+    margin: 5px 0;
+    font-size: 14px;
+}
+
+.amount-summary strong {
+    font-weight: bold;
+}
+.tablerow {
+	width: 100%;
+	border-collapse: collapse;
+	margin-top: 10px;
+}
+
+.tablerow th,
+.tablerow td {
+	border: 1px solid #ccc;
+	padding: 8px;
+	text-align: left;
+}
+
+.details p {
+    margin: 6px 0 0 6px;
+    color: #333;
+}
+
+.details p strong {
+    display: inline-block;
+    width: 150px; /* Set this based on your label length */
+    font-weight: bold;
+}
+
+.close-btn{
+    text-decoration: none;
+}
+
+.sidebar-popup {
+	width: 500px;
+	background: #fff;
+	border: 1px solid #ccc;
+	padding: 20px;
+	box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+	border-radius: 8px;
+	max-height: 90vh;
+	overflow-y: auto;
+  }
+  
+  .popup-header h3 {
+	border-bottom: 1px solid #e0e0e0;
+	padding-bottom: 10px;
+	margin-bottom: 20px;
+  }
+  
+  .highlight {
+	color: #007bff;
+  }
+  
+  .section-ui {
+	margin-bottom: 20px;
+  }
+  
+  .section-ui h4 {
+	font-size: 16px;
+	border-bottom: 1px solid #eaeaea;
+	padding-bottom: 5px;
+	margin-bottom: 15px;
+  }
+  
+  .section-ui ul {
+	list-style: none;
+	padding: 0;
+  }
+  
+  .section-ui ul li {
+	margin-bottom: 1px;
+	font-size: 14px;
+  }
+  
+  .section-ui table {
+	width: 100%;
+	border-collapse: collapse;
+	margin-top: 10px;
+  }
+  
+  .section-ui table th, .section-ui table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    font-size: 14px;
+    text-align: center;
+  }
+  
+  .section-ui table th {
+	background-color: #f9f9f9;
+  }
+  
+  .total-row td {
+	font-weight: bold;
+	background-color: #f1f1f1;
+  }
+
+  .select2-container--default .select2-selection--single .select2-selection__rendered{
+    line-height: 19px !important; 
+  }
+
+  .selection .select2-selection{
+    height: 12px !important;
+  }

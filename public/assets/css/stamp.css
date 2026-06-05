@@ -1,0 +1,54 @@
+.error {
+    color: red;
+}
+
+#order-listing_length,
+#order-listing_paginate,
+#order-listing_info {
+    display: none;
+}
+
+#order-listing_filter {
+    text-align: right;
+}
+
+.select2-design+.select2.select2-container.select2-container--default {
+    width: 100% !important;
+}
+
+td {
+    table-layout: fixed;
+    width: 20px;
+    overflow: hidden;
+    word-wrap: break-word;
+}
+
+.table-width1 tr th:last-child {
+    width:88px;
+}
+.table-width1 tr th:first-child {
+    width: 3%;
+}
+.table-width1 tr th:nth-child(3) {
+   width: 10%;
+}
+.table-width1 tr th:nth-child(4) {
+   width: 12%;
+}
+.table-width1 tr th:nth-child(5) {
+   width: 12%;
+}
+.table-width1 tr th:nth-child(6) {
+   width: 12%;
+}
+
+.table-width1 {
+    background-color: #fff;
+}
+
+.page-title-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}

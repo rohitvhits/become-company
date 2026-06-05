@@ -1,0 +1,4 @@
+Last Name,First Name,Middle Initial,Birth Date,Gender,Email Address,Primary Address 1,Primary Address 2,Primary City,Primary State,Primary Zip Code,Home Phone,Mobile Phone,Company,SSN,Hire Date,Work Contact,Work Email,Last Worked Date,Member Id,Employee Code
+Smith,John,A,1985-05-15,Male,john.smith@email.com,123 Main St,Apt 4B,New York,NY,10001,(555) 123-4567,(555) 987-6543,ABC Healthcare,123-45-6789,2020-01-15,Jane Doe,john.smith@company.com,2024-12-31,EMP001,JSmith001
+Johnson,Mary,B,1990-08-22,Female,mary.johnson@email.com,456 Oak Ave,,Los Angeles,CA,90210,(555) 234-5678,(555) 876-5432,XYZ Medical,987-65-4321,2021-03-01,Bob Wilson,mary.johnson@company.com,,EMP002,MJohnson002
+Williams,Robert,C,1987-12-10,Male,robert.williams@email.com,789 Pine Dr,Unit 5,Chicago,IL,60601,(555) 345-6789,(555) 765-4321,HealthCorp,456-78-9123,2019-06-15,Alice Brown,robert.williams@company.com,2024-11-30,EMP003,RWilliams003

@@ -1,0 +1,28 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        Schema::table('patient_auto_call_logs', function (Blueprint $table) {
+            $table->string('reminder_conversation_id')->nullable()->after('reminder_call_fired_at');
+            $table->longText('reminder_transcript')->nullable()->after('reminder_conversation_id');
+        });
+    }
+
+    public function down()
+    {
+        Schema::table('patient_auto_call_logs', function (Blueprint $table) {
+            $table->dropColumn(['reminder_conversation_id', 'reminder_transcript']);
+        });
+    }
+};

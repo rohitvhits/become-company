@@ -1,0 +1,44 @@
+/* ── Help Me Write ───────────────────────────────────────── */
+
+@keyframes aiGradientMoveBtn {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.btn-hmw,
+.btn-hmw:focus,
+.btn-hmw:active {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  padding: 6px 14px !important;
+  border: none !important;
+  border-radius: 20px !important;
+  background-image: linear-gradient(270deg,#6c5ce7,#0984e3,#00b894,#6c5ce7) !important;
+  background-size: 300% 300% !important;
+  background-color: transparent !important;
+  -webkit-animation: aiGradientMoveBtn 4s ease infinite !important;
+          animation: aiGradientMoveBtn 4s ease infinite !important;
+  color: #fff !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  vertical-align: middle !important;
+  white-space: nowrap !important;
+  box-shadow: 0 3px 12px rgba(108,92,231,0.35) !important;
+  transition: box-shadow .2s !important;
+  line-height: 1.4 !important;
+}
+.btn-hmw:hover  { box-shadow: 0 5px 16px rgba(108,92,231,0.55) !important; color: #fff !important; }
+.btn-hmw:disabled { opacity: .7 !important; cursor: not-allowed !important; animation: none !important; }
+.btn-hmw svg { flex-shrink: 0; }
+
+.hmw-refine-item {
+  display: block; width: 100%; padding: 10px 16px;
+  background: none; border: none; text-align: left;
+  font-size: 13px; color: #333; cursor: pointer; transition: background .15s;
+}
+.hmw-refine-item:hover { background: #f4f1ff; color: #6c5ce7; }
+
+@keyframes hmwSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }

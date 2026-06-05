@@ -1,0 +1,6 @@
+FirstName,LastName,Email,SSN,Company,Gender,DOB,Utilization
+John,Smith,john.smith@gmail.com,123-45-6789,Acme Corp,male,03/15/1985,onboarding
+Emily,Johnson,emily.johnson@yahoo.com,987-65-4321,Johnson & Co,female,06/22/1990,in training
+Michael,Brown,michael.brown@outlook.com,111-22-3333,Brown Logistics,male,09/09/1982,full-time
+Sarah,Davis,sarah.davis@icloud.com,222-33-4444,Davis Healthcare,female,01/30/1988,project allocation
+David,Wilson,david.wilson@aol.com,333-44-5555,Wilson Engineering,male,12/01/1992,utilization complete

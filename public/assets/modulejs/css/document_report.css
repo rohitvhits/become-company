@@ -1,0 +1,137 @@
+.hide{
+    display: none;
+}
+.radio-label {
+    display: inline-block;
+    padding: 6px;
+    outline: 1px solid #238be5;
+    padding-right: 50px;
+    background-color: #d5ecff;
+}
+
+.actions {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.page-title-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.token-input-input-token input{
+    width: 100% !important;
+}
+
+.select2-container{
+    width: 100% !important;
+}
+
+.no-decoration, .no-decoration:hover {
+  text-decoration: underline;
+  color: #ffffff; /* or any custom color like black or #333 */
+}
+
+.modal-lg {
+    max-width: 1200px;
+}
+
+.modal-header {
+    padding: 0.5rem 1rem;
+    /* align-items: flex-start; */
+}
+
+.header-info {
+    font-size: 0.8rem;
+    line-height: 1.2;
+}
+
+.document-info {
+    font-size: 0.8rem;
+    margin-left: auto;
+    margin-right: 1rem;
+    text-align: right;
+}
+
+.card {
+    border: 1px solid rgba(0,0,0,.125);
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);
+}
+
+.card-header {
+    padding: 0.5rem 0.75rem;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid rgba(0,0,0,.125);
+}
+
+.form-control:focus {
+    border-color: #17a2b8;
+    box-shadow: 0 0 0 0.2rem rgba(23,162,184,.25);
+}
+
+.btn {
+    padding: 0.25rem 1rem;
+    font-weight: 500;
+}
+
+.btn-info {
+    background-color: #17a2b8;
+    border-color: #17a2b8;
+}
+
+.btn-info:hover {
+    background-color: #138496;
+    border-color: #117a8b;
+}
+
+.custom-control-label {
+    cursor: pointer;
+}
+
+.badge {
+    font-size: 0.75rem;
+    padding: 0.25em 0.5em;
+}
+
+.small {
+    font-size: 0.875rem;
+}
+
+.text-muted {
+    color: #6c757d !important;
+}
+
+.font-weight-bold {
+    font-weight: 600 !important;
+}
+
+.bg-dark {
+    background-color: #343a40 !important;
+}
+
+.document-details {
+    font-size: 0.9rem;
+}
+
+.detail-row {
+    display: flex;
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+}
+
+.detail-label {
+    color: #6c757d;
+    min-width: 180px;
+    font-weight: 500;
+}
+
+.detail-value {
+    color: #212529;
+    font-weight: 600;
+    flex: 1;
+    padding-left: 30px;
+}

@@ -1,0 +1,92 @@
+.hide{
+    top: 0;
+    background: #00BBE0;
+    padding: 1px 5px;
+    font-size: 10px;
+    color: #fff;
+    border-radius: 2px 2px 2px 2px;
+    font-size: 10px !important;
+}
+.accordion .card .card-header{
+    background-color: #bbddf1;
+    padding: 9px 8px 1px 12px;
+}
+.accordion .card .card-body{
+    padding: 0 1.25rem 0.25rem 1.25rem
+}
+.preview-thumbnail{
+    color: #ffffff;
+    position: relative;
+}
+.preview-thumbnail .preview-icon{
+    padding: 6px;
+    text-align: center;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 100%;
+}
+
+.page-title-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.task-card {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 16px;
+    background: #fff;
+    width: 100%;
+    max-width: 800px;
+    margin: 10px auto;
+}
+
+.shimmer {
+    position: relative;
+    overflow: hidden;
+}
+
+.shimmer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -150px;
+    height: 100%;
+    width: 150px;
+    background: linear-gradient(to right, #f6f7f8 0%, #e0e0e0 50%, #f6f7f8 100%);
+    animation: shimmer 1.2s infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        left: -150px;
+    }
+    100% {
+        left: 100%;
+    }
+}
+
+.shimmer-bar {
+    height: 25px;
+    margin-bottom: 12px;
+    border-radius: 4px;
+    background: #f0f0f0;
+}
+
+.shimmer-line {
+    height: 12px;
+    border-radius: 4px;
+    background: #f0f0f0;
+    margin-bottom: 10px;
+}
+
+.shimmer-line.short { width: 40%; }
+.shimmer-line.medium { width: 60%; }
+.shimmer-line.long { width: 80%; }

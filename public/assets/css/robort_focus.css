@@ -1,0 +1,107 @@
+.select2-container {
+    width: 100% !important;
+}
+
+.select2-container--default .select2-selection--multiple {
+    border-radius: 0px !important;
+    border: 1px solid #e3e7ed !important;
+}
+
+.wmd-view-topscroll,
+.wmd-view {
+    overflow-x: scroll;
+    overflow-y: hidden;
+    border: none 0px red;
+}
+
+.wmd-view-topscroll {
+    height: 20px;
+}
+
+.scroll-div1 {
+    overflow-x: scroll;
+    overflow-y: hidden;
+    height: 20px;
+}
+
+.scroll-div2 {
+    height: 20px;
+}
+
+.scroll-div1,
+.scroll-div2 {
+    width: 1400px;
+}
+
+.order-listing-loader {
+    position: absolute;
+    left: 0;
+    top: 0;
+    background: #ffffff94;
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    font-size: 30px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.page-title-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.action-column {
+    white-space: nowrap;
+}
+
+.action-link {
+    display: inline-block;
+    margin-right: 8px;
+    font-size: 16px;
+    transition: all 0.2s ease;
+}
+
+.action-link:hover {
+    transform: scale(1.2);
+}
+
+.action-link i {
+    cursor: pointer;
+}
+
+.badge-pill {
+    padding: 4px 12px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.no-data-message {
+    padding: 20px;
+}
+
+.no-data-message i {
+    opacity: 0.3;
+}
+
+.table thead th {
+    background-color: #f8f9fa;
+    color: #2c3e50;
+    font-weight: 600;
+    font-size: 13px;
+    border-bottom: 2px solid #dee2e6;
+    padding: 12px 8px;
+}
+
+.table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.table tbody td {
+    padding: 10px 8px;
+    vertical-align: middle;
+    font-size: 13px;
+}

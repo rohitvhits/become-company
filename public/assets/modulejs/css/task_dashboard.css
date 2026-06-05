@@ -1,0 +1,110 @@
+::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  
+ ::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+  }
+  
+ ::-webkit-scrollbar-thumb {
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.3);
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
+  }
+  
+ ::-webkit-scrollbar-thumb:window-inactive {
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+.cus-grid{
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-gap: 20px;
+}
+.cus-grid .card{
+    height: 100%;
+}
+
+.order-total-case-loader1,.priority-order-listing-loader1,.patient-order-listing-loader1,.flagged-order-listing-loader1,.task-listing-loader1,.assignee-order-listing-loader1 {
+    position: absolute;
+    left: 0;
+    top: 0;
+    background: rgb(11 11 11 / 20%);
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    font-size: 30px;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    display: flex;
+    border-radius: 10px;
+}
+.show{
+    display: flex; 
+}
+#location_agency_id, #agency_type_id {
+  display: block !important;
+  visibility: visible !important;
+}
+
+.hide {
+    display: none;
+}
+
+.main-panel .card {
+    border-radius: 10px;
+}
+
+.progress {
+    border-radius: 10px;
+    margin-top: 5px;
+    background-color: white;
+}
+
+.grid-col-5 .card .d-flex h4{
+    font-size: 19px;
+    color: black;
+}
+
+.grid-col-5 .card .d-flex h4 a{
+    text-decoration: none;
+    color: black;
+}
+
+.grid-col-5 .card  {
+    border: none !important;
+}
+.icon-container {
+    display: flex;
+    align-items: center;
+}
+.icon-container i {
+    font-size: 24px;
+    border: 1px solid #ccc;
+    border-radius: 7px; /* For rounded corners */
+    padding: 7px;
+    color: white;
+}
+
+.cus-grid .card{
+    height: 95% !important;
+}
+
+#assignee_chart{
+    overflow-y: hidden;
+    overflow-x: auto;
+    max-width: 2000px;
+    max-height: 400px;
+}
+
+#patient_view_chart{
+    overflow-y: hidden;
+    overflow-x: auto;
+    max-width: 900px;
+    max-height: 400px;
+}

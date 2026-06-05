@@ -1,0 +1,106 @@
+.vacant{
+    background-color: #b90303;
+}
+.on-hold{
+    background-color:#9fa9b7;
+}
+.cancelled{
+    background-color: #797979;
+}
+.offered{
+    background-color: #ee6004;
+}
+.scheduled{
+    background-color: #4292b6;
+}
+.clocked{
+    background-color: #84b840;
+}
+.late{
+    background-color: #6543b3;
+}
+.completed{
+    background-color: #162a62;
+}
+.missed{
+    background-color: #f5a623;
+}
+.approved{
+    background-color: #386238;
+}
+
+.loader-main {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    z-index: 999;
+    background-color: rgb(255 252 252 / 64%);
+}
+
+.loader-inner {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.status-eye-icon{
+    color:#fff;
+}
+
+/* Help me write AI button */
+.btn-hmw {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border: none;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #6c5ce7, #0984e3);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    vertical-align: middle;
+    white-space: nowrap;
+    transition: opacity 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 6px rgba(108, 92, 231, 0.35);
+    position: relative;
+}
+.btn-hmw:hover {
+    opacity: 0.9;
+    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.5);
+    color: #fff;
+}
+.btn-hmw:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+.btn-hmw svg {
+    flex-shrink: 0;
+}
+@keyframes hmwSpin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+.hmw-refine-item {
+    display: block;
+    width: 100%;
+    padding: 10px 16px;
+    background: none;
+    border: none;
+    text-align: left;
+    font-size: 13px;
+    color: #333;
+    cursor: pointer;
+    transition: background .15s;
+}
+.hmw-refine-item:hover {
+    background: #f4f1ff;
+    color: #6c5ce7;
+}

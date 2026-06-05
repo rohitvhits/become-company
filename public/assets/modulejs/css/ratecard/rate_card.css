@@ -1,0 +1,76 @@
+
+span.select2.select2-container.select2-container--default {
+    width: 100% !important;
+}
+
+.select2-container--default .select2-selection--single {
+    border-radius: 0px !important;
+    border: 1px solid #e3e7ed !important;
+    height: 36px;
+}
+.select2-container--default .select2-selection--single .select2-selection__arrow{
+    height: 36px !important;
+}
+.error {
+    color: red;
+}
+
+.page-title-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+#videoFrame {
+    width: 455px;
+    height: 315px;
+    border: none;
+}
+.modal.fade.show {
+    z-index: 1050 !important;
+}
+
+.ck-editor {
+    width: 100%; /* Full width */
+    margin: 0 auto; /* Center on the page */
+}
+.ck-editor__editable {
+    min-height: 250px; /* Set a reasonable height */
+    width: 100%; /* Expand to the container's width */
+}
+
+.modal-lg-plus {
+    max-width: 900px; /* Set your custom width */
+}
+
+.loading-shimmer {
+    animation: shimmer 2s infinite linear;
+    background: linear-gradient(to right, #eff1f3 4%, #e2e2e2 25%, #eff1f3 36%);
+    background-size: 1000px 100%;
+}
+
+th {
+ text-align: left; 
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+    100% {
+        background-position: 1000px 0;
+    }
+}
+
+
+.circle {
+  height: 70px;
+  width: 70px;
+  border-radius: 35px;
+}
+
+
+.line {
+  height: 20px;
+  width: 300px;
+}

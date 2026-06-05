@@ -1,0 +1,75 @@
+.cvh-300{
+    height: 300px;
+}
+.notes-section {
+    height: 300px;  /* Set height of the div */
+    padding: 10px;
+    overflow-y: auto; /* Enables vertical scrolling */
+    overflow-x: hidden; /* Prevents horizontal scrolling */
+}
+#statistic {
+    height: 300px  !important;  /* Set height of the div */
+    padding: 10px;
+    overflow-y: auto; /* Enables vertical scrolling */
+    overflow-x: hidden; /* Prevents horizontal scrolling */
+}
+.location-section{
+    height: 300px;  /* Set height of the div */
+    padding: 10px;
+    overflow-y: auto; /* Enables vertical scrolling */
+    overflow-x: hidden; /* Prevents horizontal scrolling */
+}
+.announcements-section{
+    height: 265px;  /* Set height of the div */
+    padding: 10px;
+    overflow-y: auto; /* Enables vertical scrolling */
+    overflow-x: hidden; /* Prevents horizontal scrolling */
+}
+.appoitment{
+    margin-left: 80px;
+    padding-top: 5px;
+}
+.task-button {
+    margin: -2px;
+    padding: 7px
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 5px;
+  }
+  
+/* Track */
+::-webkit-scrollbar-track {
+background: #f1f1f1; 
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+background: hsl(0, 1%, 83%); 
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+background: hsl(0, 0%, 83%);
+}
+
+.border-class{
+    border: 1px solid #aaa !important;
+    border-radius: 3px;
+}
+
+.total-listing-loader1,.all-notes-loader,.nybest-notes-loader,.announcement-loader,.statistics-loader,.location-loader,.appoitment-loader{
+    position: absolute;
+    left: 0;
+    top: 0;
+    background: rgb(11 11 11 / 20%);
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    font-size: 30px;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    display: none;
+}

@@ -1,0 +1,412 @@
+.cvh-100{
+    height: 100px;
+}
+.profile {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    background-color: #efefef;
+}
+.profile img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 15px;
+}
+.profile-text {
+    font-size: 14px;
+}
+.profile-text h4 {
+    margin: 0;
+    font-size: 16px;
+}
+.profile-text p {
+    margin: 5px 0 0 0;
+    color: #555;
+}
+.notes-section {
+    height: 215px;
+    overflow-y: auto; 
+    overflow-x: hidden;
+}
+
+::-webkit-scrollbar {
+    width: 10px; /* Change this value to make the scrollbar narrower or wider */
+    height: 10px; /* For horizontal scrollbars */
+}
+
+/* The scrollbar "track" (empty space behind the scrollbar) */
+::-webkit-scrollbar-track  {
+    background: hsl(0, 0%, 83%); 
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: hsl(0, 0%, 83%);
+}
+
+.cus-grid{
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-gap: 20px;
+}
+.cus-grid .card{
+    height: 100%;
+}
+
+.notes-loader1,.loaction-order-listing-loader1,.service-order-listing-loader1,.all-order-listing-loader1,.order-total-case-loader1,.order-status-loader1,.order-listing-loader1,.appoitment-listing-loader1 {
+    position: absolute;
+    left: 0;
+    top: 0;
+    background: rgb(11 11 11 / 20%);
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    font-size: 30px;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    display: none;
+
+}
+
+.order-total-case-loader1 {
+    position: absolute;
+    left: 0;
+    top: 0;
+    background: rgb(11 11 11 / 20%);
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    font-size: 30px;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    display: none;
+}
+.order-status-loader1 {
+    position: absolute;
+    left: 0;
+    top: 0;
+    background: rgb(11 11 11 / 20%);
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    font-size: 30px;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    display: flex;
+
+}
+.show{
+    display: flex; 
+}
+#location_agency_id, #agency_type_id {
+  display: block !important;
+  visibility: visible !important;
+}
+
+.notes-loader1 {
+    position: absolute;
+    left: 0;
+    top: 0;
+    background: rgb(11 11 11 / 20%);
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    font-size: 30px;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    display: none;
+}
+
+#barChartCanvas {
+    overflow-y: hidden; 
+    overflow-x: auto;
+}
+
+#pieChartNew1{
+    overflow-y: hidden; 
+    overflow-x: auto;
+}
+.agency-order-listing-loader1 {
+    position: absolute;
+    left: 0;
+    top: 0;
+    background: rgb(11 11 11 / 20%);
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    font-size: 30px;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    display: flex;
+
+}
+
+/* #barChartCanvas, #stock_meterial_chart, #statusChartNew, #pieChartNew, #pieChartNew1 {
+    height: 500px !important;
+    margin-top: 20px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border: 1px solid hsl(0, 9%, 94%);
+    border-radius: 5px;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+    margin: 20px auto;
+    padding: 10px; 
+    background-color: #f9f9f9;
+} */
+
+/**************right-side-panel****************/
+.sticky-top
+{
+    z-index: 0;
+}
+.fixed-bottom {
+    z-index: 0;
+}
+
+/* Settings Panel */
+.settings-panel {
+    border-left: 1px solid #e3e7ed;
+    display: block;
+    position: fixed;
+    top: 64px;
+    right: -600px;
+    bottom: 0;
+    width: 425px;
+    height: 10px;
+    min-height: 65vh;
+    background: #ffffff;
+    -webkit-transition-duration: 0.25s;
+    -moz-transition-duration: 0.25s;
+    -o-transition-duration: 0.25s;
+    transition-duration: 0.25s;
+    -webkit-transition-timing-function: ease;
+    -moz-transition-timing-function: ease;
+    -o-transition-timing-function: ease;
+    transition-timing-function: ease;
+    -webkit-transition-property: right, box-shadow;
+    -moz-transition-property: right, box-shadow;
+    -o-transition-property: right, box-shadow;
+    transition-property: right, box-shadow;
+    z-index: 9999;
+}
+
+.settings-panel .nav-tabs {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-justify-content: center;
+    justify-content: center;
+    width: auto;
+    margin: 0;
+    padding: 0;
+    background: #ffffff;
+}
+
+.settings-panel .nav-tabs .nav-item {
+    border: none;
+}
+
+.settings-panel .nav-tabs .nav-item .nav-link {
+    background: transparent;
+    text-align: center;
+    /* border: none;*/
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    color: #1c273c;
+    -webkit-transition-duration: 0.4s;
+    -moz-transition-duration: 0.4s;
+    -o-transition-duration: 0.4s;
+    transition-duration: 0.4s;
+    transition-property: color;
+    -webkit-transition-property: color;
+    -webkit-justify-content: center;
+    justify-content: center;
+}
+
+.settings-panel .nav-tabs .nav-item .nav-link.active {
+    background: transparent;
+    /*color: #7571f9;*/
+}
+
+.settings-panel .tab-content {
+    border: none;
+    padding: 20px 0 0px 0;
+}
+
+.settings-panel .tab-content .tab-pane.scroll-wrapper {
+    position: relative;
+    max-height: 100vh;
+    height: 80%;
+    padding-bottom: 150px;
+}
+#notes_all_section{
+    height: 10px;
+    min-height: 65vh;
+    overflow-y: auto; 
+    overflow-x: hidden;
+}
+
+.settings-panel .sidebar-bg-options {
+    padding: 13px 35px;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    font-size: 0.875rem;
+    line-height: 1;
+    color: #595959;
+    background: #ffffff;
+    -webkit-transition-duration: 0.25s;
+    -moz-transition-duration: 0.25s;
+    -o-transition-duration: 0.25s;
+    transition-duration: 0.25s;
+    -webkit-transition-property: background;
+    -moz-transition-property: background;
+    -o-transition-property: background;
+    transition-property: background;
+}
+
+.settings-panel .sidebar-bg-options.selected {
+    background: #e6e9ed;
+}
+
+.settings-panel .color-tiles {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-justify-content: space-around;
+    justify-content: space-around;
+    -webkit-flex-wrap: wrap;
+    flex-wrap: wrap;
+    margin: 0px 35px 10px 35px;
+    padding-top: 15px;
+}
+
+.settings-panel .color-tiles .tiles {
+    margin: 10px 18px;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+}
+
+.settings-panel .color-tiles .tiles:before {
+    content: "";
+    width: 0px;
+    height: 0px;
+    opacity: 0;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 100%;
+    border: 0;
+    -webkit-transition-duration: 0.25s;
+    -moz-transition-duration: 0.25s;
+    -o-transition-duration: 0.25s;
+    transition-duration: 0.25s;
+    -webkit-transition-timing-function: ease;
+    -moz-transition-timing-function: ease;
+    -o-transition-timing-function: ease;
+    transition-timing-function: ease;
+}
+
+.settings-panel .color-tiles .tiles.selected:before {
+    width: 10px;
+    height: 10px;
+    opacity: 1;
+    border-width: 1px;
+}
+
+.settings-panel .color-tiles .tiles.default {
+    background: #cdd4e0;
+    border: 1px solid #e2e4e7;
+}
+
+.settings-panel.open {
+    right: 0;
+}
+.settings-panel.open h3{
+    margin:10px;
+    padding: 6px; 
+}
+
+.settings-panel .settings-close {
+    position: absolute;
+    top: 16px;
+    right: 10px;
+    color: #7571f9;
+    background: transparent;
+    border-radius: 4px;
+    padding: 0 3px;
+    cursor: pointer;
+    -webkit-transition-duration: 0.2s;
+    -moz-transition-duration: 0.2s;
+    -o-transition-duration: 0.2s;
+    transition-duration: 0.2s;
+    z-index: 999;
+}
+
+.settings-panel .settings-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.rtl .settings-panel .settings-close {
+    right: unset;
+    left: 10px;
+}
+
+.settings-panel .events p {
+    font-family: "Roboto", sans-serif;
+    font-weight: 400;
+}
+
+.rtl .settings-panel .events p {
+    text-align: right;
+}
+
+.rtl .settings-panel {
+    right: unset;
+    left: -300px;
+    -webkit-transition-property: left;
+    -moz-transition-property: left;
+    -o-transition-property: left;
+    transition-property: left;
+}
+
+.rtl .settings-panel.open {
+    left: 0;
+    right: unset;
+}
+
+.hide {
+    display: none;
+}
+
+.border-class{
+    border: 1px solid #aaa !important;
+    border-radius: 3px;
+}
+
+.order-listing-loader-notes {
+    position: absolute;
+    left: 0;
+    top: 0;
+    background: rgb(11 11 11 / 20%);
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    font-size: 30px;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    display: none;
+
+}
