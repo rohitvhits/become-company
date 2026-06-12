@@ -34,14 +34,16 @@ use Illuminate\Support\Facades\Crypt;
 use App\Helpers\EncryptDecryptCodeHelper;
 use App\Helpers\Utility;
 use App\Helpers\Common;
+use App\Services\AgencyService;
 class AgencyUserController extends BaseController
 {
-    public function __construct()
+    protected $agencyService;
+
+    public function __construct(AgencyService $agencyService)
     {
-   
         // $this->middleware('permission:agency-add-user', ['only' => ['add_page','add']]);
         $this->middleware('auth', ['except' => ['AcceptInvivation', 'AcceptView']]);
-
+        $this->agencyService = $agencyService;
     }
 
 
@@ -124,6 +126,8 @@ class AgencyUserController extends BaseController
             $cnt = 0;
             $insert = 0;
             $emailArray = array();
+            $agencyDetails = $this->agencyService->getDetailsById($request['uid']);
+            $agencyCompanyId = $agencyDetails->domain_config_id ?? null;
             if (isset($request->input('first_name')[0]) && is_array($request->input('first_name')) && !empty($request->input('first_name')[0])) {
                 foreach ($request->input('first_name') as $key => $val) {
                     $emails = '';
@@ -149,6 +153,7 @@ class AgencyUserController extends BaseController
                             'user_type_fk' => 6,
                             'active' => 'active',
                             'agency_fk' => $request['uid'],
+                            'company_id' => $agencyCompanyId ?: null,
                             'record_access' =>$request->input('record_access')[$key],
                             'department' =>$request->input('department')[$key],
                             'role_access' => isset($request->input('role_access')[$key]) && $request->input('role_access')[$key] == 1 ? 1 : 0,
@@ -220,6 +225,7 @@ class AgencyUserController extends BaseController
                         'user_type_fk' => 6,
                         'active' => 'active',
                         'agency_fk' => $request['uid'],
+                        'company_id' => $agencyCompanyId ?: null,
                         'record_access' =>$request->input('record_access'),
                         'department' =>$request->input('department'),
                         'role_access' => $request->input('role_access') == 1 ? 1 : 0,

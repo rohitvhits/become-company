@@ -31,7 +31,7 @@ class User extends Authenticatable
 
     protected $fillable = [
 
-        'first_name','last_name','user_type_fk','login_type_fk', 'email', 'phone','type','password','remember_token','created_by','created_at','updated_by','updated_at','deleted_by','deleted_at','agency_fk','referenceId','referenceBy','last_login_ip','last_login_at','limit_access','hospital_flag','exmedc_flag','send_invitation','ext','login_attemps','record_access','department','role_access', 'show_in_directory','is_nurse','is_mdo','is_telehealth','show_hub','two_factor_auth','creator_email_noti_toggle','old_agency_id','send_email_btn_show',
+        'first_name','last_name','user_type_fk','login_type_fk', 'email', 'phone','type','password','remember_token','created_by','created_at','updated_by','updated_at','deleted_by','deleted_at','agency_fk','company_id','referenceId','referenceBy','last_login_ip','last_login_at','limit_access','hospital_flag','exmedc_flag','send_invitation','ext','login_attemps','record_access','department','role_access', 'show_in_directory','is_nurse','is_mdo','is_telehealth','show_hub','two_factor_auth','creator_email_noti_toggle','old_agency_id','send_email_btn_show',
 
     ];
 

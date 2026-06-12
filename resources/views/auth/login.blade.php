@@ -5,7 +5,7 @@
   <!-- Required meta tags -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
- <title>NY BEST MEDICAL</title>
+ <title>{{ $appTitle }}</title>
   <!-- base:css -->
   <link rel="stylesheet" href="<?php echo URL::to('/');?>/assets/vendors/mdi/css/materialdesignicons.min.css">
   <link rel="stylesheet" href="<?php echo URL::to('/');?>/assets/vendors/css/vendor.bundle.base.css">
@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="<?php echo URL::to('/');?>/assets/css/vertical-layout-light/style.css">
   <!-- endinject -->
   
-  <link rel="shortcut icon" href="img/favicon.png" />
+  <link rel="shortcut icon" href="{{ asset($appFavicon) }}" />
 <style>
 
   .bgimage{
@@ -40,7 +40,7 @@
     <div class="container-fluid page-body-wrapper full-page-wrapper">
       <div class="content-wrapper d-flex align-items-stretch auth auth-img-bg">
         <div class="row flex-grow">
-          <div class="col-lg-6 d-flex align-items-center justify-content-center" style="color: white;background: #0F0D0B;">
+          <div class="col-lg-6 d-flex align-items-center justify-content-center" style="color: white;background: {{ $appLoginBg }};">
 					
 					
             <div class="auth-form-transparent text-left p-3">
@@ -55,9 +55,7 @@
                         </div>
                     @endif
 			  <div class="brand-logo">
-              <img src="{{URL::to('/')}}/img/logo.png" alt="logo" style="width: 100%">
-              <!-- <img src="https://www.nybestmedical.com/wp-content/uploads/2020/12/Logo-Original-1.png" alt="logo" style="width: 100%"> -->
-              
+              <img src="{{ asset($appLogo) }}" alt="logo" style="{{ $appLogoStyle }}">
               </div>
               <h4>Welcome!</h4>
               <h6 class="font-weight-light">Happy to see you again!!</h6>
@@ -121,7 +119,7 @@
             </div>
           </div>
           <div class="col-lg-6 home-page-bg">
-          <img src="{{URL::to('/')}}/img/pana.png" class="bgimage" >
+          <img src="{{ asset($appLoginImage) }}" class="bgimage" >
 
 
             <p class="text-white font-weight-medium text-center flex-grow align-self-end">Copyright &copy; {{date('Y')}}  All rights reserved.</p>

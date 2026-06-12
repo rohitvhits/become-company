@@ -15,7 +15,7 @@ class Agency extends Model
 	use Notifiable;
 
 	protected $table = 'agency';
-	protected $fillable = ['id','county','other_email', 'agency_name', 'address1', 'address2','email', 'phone', 'state','city','zip_code','billing_email','bill_date','monthly_bill','active', 'created_at', 'updated_at', 'deleted_at', 'created_by', 'updated_by', 'deleted_by', 'delete_flag','paid_amount','due_amount','invoice_ninja_id','service_expert_medicaid','service_md_appointment','app_name','app_key','app_token','notification_email','nybest_email_notification','notes_email_notification','is_sms','robort_status','robort_user_name','robort_user_password','robort_grant_type','alayacare_url','agency_id','client_name','show_hub','view_payment_report','enable_file_manager','show_reporting_tool','ai_call_logs_enabled','enable_review'];
+	protected $fillable = ['id','county','other_email', 'agency_name', 'address1', 'address2','email', 'phone', 'state','city','zip_code','billing_email','bill_date','monthly_bill','active', 'created_at', 'updated_at', 'deleted_at', 'created_by', 'updated_by', 'deleted_by', 'delete_flag','paid_amount','due_amount','invoice_ninja_id','service_expert_medicaid','service_md_appointment','app_name','app_key','app_token','notification_email','nybest_email_notification','notes_email_notification','is_sms','robort_status','robort_user_name','robort_user_password','robort_grant_type','alayacare_url','agency_id','client_name','show_hub','view_payment_report','enable_file_manager','show_reporting_tool','ai_call_logs_enabled','enable_review','domain_config_id'];
 
 	protected const START_TIME =' 00:00:00';
 	protected const END_TIME =' 23:59:59';

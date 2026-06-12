@@ -57,6 +57,7 @@ use App\Services\AgencyPocDocumentTypeService;
 use App\Services\AgencyOtherComplianceMedicalService;
 use App\Model\AgencyOtherComplianceMedical;
 use App\Services\AgencyNoteService;
+use App\Services\AgencyWiseCompanyService;
 use App\Services\UserService;
 class AgencyController extends BaseController
 {
@@ -68,7 +69,7 @@ class AgencyController extends BaseController
     protected $agencyOtherComplianceMedicalService = "";
     protected $agencyNoteService = "";
     protected $userService;
-    public function __construct(AgencyWiseServiceService $AgencyWiseServiceService, AgencySkillService $AgencySkillService, AlayacareClientService $alayacareClientService, AlayacareService $alayacareService, TokenwiseApiCallService $tokenWiseApiCallService, FormBuilderService $FormBuilderService, AgencyWebHookService $agencyWebHookService, AgencyWiseSMSNotificationService $agencyWiseSMSNotificationService,AgencyWiseDisabledService $agencyWiseDisabledService,UserCreatorEmailNotificationService $userCreatorEmailNotificationService, AssignNyBestUserService $assignNyBestUserService,HHAMDOService $hhaMDOService, AgencyTaskHealthService $agencyTaskHealthService,AgencyWiseVistingClientService $agencyWiseVistingClientService, AgencyService $agencyService, AgencyPocDocumentTypeService $agencyPocDocumentTypeService, AgencyOtherComplianceMedicalService $agencyOtherComplianceMedicalService, AgencyNoteService $agencyNoteService,UserService $userService)
+    public function __construct(AgencyWiseServiceService $AgencyWiseServiceService, AgencySkillService $AgencySkillService, AlayacareClientService $alayacareClientService, AlayacareService $alayacareService, TokenwiseApiCallService $tokenWiseApiCallService, FormBuilderService $FormBuilderService, AgencyWebHookService $agencyWebHookService, AgencyWiseSMSNotificationService $agencyWiseSMSNotificationService,AgencyWiseDisabledService $agencyWiseDisabledService,UserCreatorEmailNotificationService $userCreatorEmailNotificationService, AssignNyBestUserService $assignNyBestUserService,HHAMDOService $hhaMDOService, AgencyTaskHealthService $agencyTaskHealthService,AgencyWiseVistingClientService $agencyWiseVistingClientService, AgencyService $agencyService, AgencyPocDocumentTypeService $agencyPocDocumentTypeService, AgencyOtherComplianceMedicalService $agencyOtherComplianceMedicalService, AgencyNoteService $agencyNoteService,UserService $userService, AgencyWiseCompanyService $agencyWiseCompanyService)
     {
         $this->middleware('permission:agency-list|agency-add|agency-edit|agency-delete|agency-view', ['only' => ['index', 'save', 'view']]);
         $this->middleware('permission:agency-list', ['only' => ['index', 'ajaxList']]);
@@ -105,6 +106,7 @@ class AgencyController extends BaseController
         $this->agencyOtherComplianceMedicalService = $agencyOtherComplianceMedicalService;
         $this->agencyNoteService = $agencyNoteService;
         $this->userService = $userService;
+        $this->agencyWiseCompanyService = $agencyWiseCompanyService;
     }
 
     public function index(Request $request)
@@ -156,6 +158,7 @@ class AgencyController extends BaseController
         if ($user['user_type_fk'] != 184) {
             return abort(404);
         }
+        $data['domainConfigs'] = $this->agencyWiseCompanyService->getAllDomainConfigs();
         return view("agency/add", $data);
     }
 
@@ -209,6 +212,7 @@ class AgencyController extends BaseController
                 'client_name' => $request->client_name,
                 'document_email_notification' => $request->document_email_notification,
                 'efax_no' => $request->efax_no,
+                'domain_config_id' => $request->domain_config_id ?: null,
             );
             if ($request->input('nybest_email_notification') != '') {
                 $data['nybest_email_notification'] = $request->input('nybest_email_notification');
@@ -217,6 +221,10 @@ class AgencyController extends BaseController
             $ins_test = new Agency($data);
             $ins_test->save();
             $insert = $ins_test->id;
+
+            if ($insert && $request->domain_config_id) {
+                $this->agencyWiseCompanyService->saveForAgency($insert, $request->domain_config_id);
+            }
 
             if ($insert) {
 
@@ -251,6 +259,8 @@ class AgencyController extends BaseController
         }
         $data['id'] = $id;
         $data['agency'] = Agency::where("id", $id)->first();
+        $data['domainConfigs'] = $this->agencyWiseCompanyService->getAllDomainConfigs();
+        $data['agencyCompany'] = $this->agencyWiseCompanyService->getFirstByAgency($id);
         return view('agency/edit', $data);
     }
 
@@ -296,12 +306,13 @@ class AgencyController extends BaseController
                 'client_name' => $request->client_name,
                 'document_email_notification' => $request->document_email_notification,
                 'efax_no' => $request->efax_no,
+                'domain_config_id' => $request->domain_config_id ?: null,
             );
             $data['nybest_email_notification'] = $request->input('nybest_email_notification');
-            if ($request->input('nybest_email_notification') != '') {
-            }
 
             $update = Agency::where('id', $id)->update($data);
+
+            $this->agencyWiseCompanyService->upsertForAgency($id, $request->domain_config_id);
 
             if ($update) {
                 // $ipaddress = request()->getClientIp();
@@ -451,6 +462,54 @@ class AgencyController extends BaseController
         } else {
             return redirect('/agency');
         }
+    }
+
+    public function agencyWiseCompanyList(Request $request)
+    {
+        $data['query'] = $this->agencyWiseCompanyService->getByAgency($request->agency_id);
+
+        return view('agency._partial.agency_wise_company.list', $data);
+    }
+
+    public function agencyWiseCompanyOptions(Request $request)
+    {
+        $configs  = $this->agencyWiseCompanyService->getAllDomainConfigs();
+        $selected = $request->selected;
+
+        $html = '<option value="">-- Select Company --</option>';
+        foreach ($configs as $dc) {
+            $sel  = $selected == $dc->id ? 'selected' : '';
+            $html .= '<option value="' . $dc->id . '" ' . $sel . '>' . e($dc->company_name) . '</option>';
+        }
+        return $html;
+    }
+
+    public function agencyWiseCompanyUpdate(Request $request)
+    {
+        $oldRecord = $this->agencyWiseCompanyService->findById($request->id);
+        if (!$oldRecord) {
+            return response()->json(['message' => 'Record not found.'], 404);
+        }
+
+        $oldData = $oldRecord->toArray();
+
+        $row = $this->agencyWiseCompanyService->updateCompany($request->id, $request->domain_config_id);
+
+        $this->agencyService->update(['domain_config_id' => $request->domain_config_id ?: null], ['id' => $row->agency_id]);
+
+        $user = auth()->user();
+        LogsService::save([
+            'type'         => 'Update',
+            'link'         => url('/agency/wise-company-update'),
+            'module'       => 'Agency Wise Company',
+            'object_id'    => $row->agency_id,
+            'message'      => $user->first_name . ' ' . $user->last_name . ' has updated Agency Wise Company',
+            'old_response' => serialize($oldData),
+            'new_response' => serialize(['agency_id' => $row->agency_id, 'domain_config_id' => $row->domain_config_id]),
+            'ip'           => Utility::getIP(),
+        ]);
+
+        return response()->json(['message' => 'Company updated successfully.']);
     }
 
     public function userList(Request $request)
