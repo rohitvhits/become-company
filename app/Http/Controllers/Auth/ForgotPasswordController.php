@@ -33,6 +33,15 @@ class ForgotPasswordController extends Controller
     }
 
 
+    public function showLinkRequestForm()
+    {
+        $host = request()->getHost();
+        if (in_array($host, ['becomecompany.com', 'becomecompany.test'])) {
+            return view('auth.passwords.email_becomecompany');
+        }
+        return view('auth.passwords.email');
+    }
+
     public function sendResetLinkEmail(Request $request)
     {
         $this->validateEmail($request);

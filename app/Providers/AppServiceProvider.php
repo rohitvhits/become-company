@@ -10,6 +10,7 @@ use URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Pagination\Paginator;
+use App\Model\DomainConfig;
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -40,6 +41,49 @@ class AppServiceProvider extends ServiceProvider
         } else {
             // \Log::warning('Class Swift_Preferences does not exists');
         }
+        view()->composer('*', function ($view) {
+            $host = request()->getHost();
+
+            $default = [
+                'logo'        => env('APP_LOGO', 'img/logo.png'),
+                'favicon'     => 'img/favicon.png',
+                'title'       => env('APP_NAME', 'Laravel'),
+                'login_bg'    => '#0F0D0B',
+                'theme_color' => '#0F0D0B',
+                'logo_style'  => 'width:100%;',
+                'login_image' => 'img/pana.png',
+            ];
+
+            $config = $default;
+
+            try {
+                $dbConfig = DomainConfig::where('domain', $host)->first();
+                if ($dbConfig) {
+                    $config = [
+                        'logo'        => $dbConfig->logo        ?: $default['logo'],
+                        'favicon'     => $dbConfig->favicon     ?: $default['favicon'],
+                        'title'       => $dbConfig->title       ?: $default['title'],
+                        'login_bg'    => $dbConfig->login_bg    ?: $default['login_bg'],
+                        'theme_color' => $dbConfig->theme_color ?: $default['theme_color'],
+                        'logo_style'  => $dbConfig->logo_style  ?: $default['logo_style'],
+                        'login_image' => $dbConfig->login_image ?: $default['login_image'],
+                    ];
+                }
+            } catch (\Exception $e) {
+                // table may not exist yet during migrations
+            }
+
+            $view->with([
+                'appLogo'        => $config['logo'],
+                'appFavicon'     => $config['favicon'],
+                'appTitle'       => $config['title'],
+                'appLoginBg'     => $config['login_bg'],
+                'appThemeColor'  => $config['theme_color'],
+                'appLogoStyle'   => $config['logo_style'],
+                'appLoginImage'  => $config['login_image'],
+            ]);
+        });
+
         view()->composer('*', function ($view) {
             $taskList=[];
             if(auth()->check()){

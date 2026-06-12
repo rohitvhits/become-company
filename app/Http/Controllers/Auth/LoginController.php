@@ -75,6 +75,15 @@ class LoginController extends Controller
     }
 
 
+    public function showLoginForm(Request $request)
+    {
+        $host = $request->getHost();
+        if (in_array($host, ['becomecompany.com', 'becomecompany.test'])) {
+            return view('auth.login_becomecompany');
+        }
+        return view('auth.login');
+    }
+
     public function login(Request $request)
     {
      
@@ -101,6 +110,14 @@ class LoginController extends Controller
         }
         
         $user = User::whereRaw('LOWER(email) ="'.strtolower($request->email).'"')->where('delete_flag', 'N')->first();
+
+        $host = $request->getHost();
+        if ($user && in_array($host, ['becomecompany.com', 'becomecompany.test'])) {
+            if (!in_array($user->user_type_fk, [5, 6])) {
+                Session::flash('error', 'Access denied. Only agency users can login here.');
+                return redirect('/');
+            }
+        }
 
         if ($user) {
             if(empty($request->password)){

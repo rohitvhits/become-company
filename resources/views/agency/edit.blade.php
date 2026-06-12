@@ -154,8 +154,27 @@
                                     </div>
                                 </div>
                             </div>
+
                             <div class="row">
-                                
+                                <div class="col-md-6">
+                                    <div class="form-group row">
+                                        <label class="col-sm-3 col-form-label">Company Name</label>
+                                        <div class="col-sm-9">
+                                            <select class="form-control" id="domain_config_id" name="domain_config_id">
+                                                <option value="">-- Select Company --</option>
+                                                @foreach($domainConfigs as $dc)
+                                                    <option value="{{ $dc->id }}" {{ isset($agencyCompany) && $agencyCompany->domain_config_id == $dc->id ? 'selected' : '' }}>
+                                                        {{ $dc->company_name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+
                                 <div class="col-md-6">
                                     <div class="form-group row">
                                         <label class="col-sm-3 col-form-label">Notification Email For NYBEST Users (commas

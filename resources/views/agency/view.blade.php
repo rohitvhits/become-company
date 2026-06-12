@@ -671,6 +671,9 @@ use Illuminate\Support\Facades\URL;
                     <li class="nav-item">
                         <a class="nav-link" id="visiting-detail-tab" data-toggle="tab" href="#visiting-detail-1" role="tab" aria-controls="visiting-detail-1" aria-selected="false">Visiting Detail</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="agency-wise-company-tab" data-toggle="tab" href="#agency-wise-company-1" role="tab" aria-controls="agency-wise-company-1" aria-selected="false" onclick="loadAgencyWiseCompany()">Agency Wise Company</a>
+                    </li>
                     @can('agency-notes-list')
                     <li class="nav-item">
                         <a class="nav-link" id="agency-notes-tab" data-toggle="tab" href="#agency-notes-1" role="tab" aria-controls="agency-notes-1" aria-selected="false" onclick="loadAgencyNotes()"><i class="mdi mdi-note-text mr-1"></i> Agency Notes</a>
@@ -963,6 +966,40 @@ use Illuminate\Support\Facades\URL;
                     </div>
                     @endcan
 
+                    <div class="tab-pane fade" id="agency-wise-company-1" role="tabpanel" aria-labelledby="agency-wise-company-tab">
+                        <div class="d-flex justify-content-between align-items-center mb-3 mt-2">
+                            <h5 class="mb-0">Agency Wise Company</h5>
+                        </div>
+                        <div id="agency-wise-company-list">
+                            <p class="text-muted">Loading...</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Agency Wise Company Edit Modal -->
+    <div class="modal fade" id="agencyWiseCompanyEditModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Company</h5>
+                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit_agency_company_id">
+                    <div class="form-group">
+                        <label class="font-weight-semibold">Company Name</label>
+                        <select class="form-control" id="edit_domain_config_id">
+                            <option value="">-- Select Company --</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="saveAgencyWiseCompany" class="btn btn-success">Update</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
@@ -3205,6 +3242,61 @@ use Illuminate\Support\Facades\URL;
             complete: function(){
                 $btn.prop('disabled', false).text(prevText);
             }
+        });
+    });
+
+
+    var agencyWiseCompanyLoaded = false;
+
+    function loadAgencyWiseCompany() {
+        if (agencyWiseCompanyLoaded) return;
+        agencyWiseCompanyLoaded = true;
+        $.ajax({
+            type: 'GET',
+            url: '{{ url("agency/wise-company-list") }}',
+            data: { agency_id: '{{ $id }}' },
+            success: function(html) {
+                $('#agency-wise-company-list').html(html);
+            },
+            error: function() {
+                $('#agency-wise-company-list').html('<p class="text-danger">Failed to load.</p>');
+            }
+        });
+    }
+
+    $(document).on('click', '.editAgencyWiseCompany', function() {
+        var rowId   = $(this).data('id');
+        var current = $(this).data('domain-config-id');
+        $('#edit_agency_company_id').val(rowId);
+        $.ajax({
+            type: 'GET',
+            url: '{{ url("agency/wise-company-options") }}',
+            data: { selected: current },
+            success: function(html) {
+                $('#edit_domain_config_id').html(html);
+                $('#agencyWiseCompanyEditModal').modal('show');
+            }
+        });
+    });
+
+    $(document).on('click', '#saveAgencyWiseCompany', function() {
+        var $btn    = $(this);
+        var rowId   = $('#edit_agency_company_id').val();
+        var dcId    = $('#edit_domain_config_id').val();
+        $btn.prop('disabled', true).text('Updating...');
+        $.ajax({
+            type: 'POST',
+            url: '{{ url("agency/wise-company-update") }}',
+            data: { id: rowId, domain_config_id: dcId, _token: '{{ csrf_token() }}' },
+            dataType: 'json',
+            success: function(res) {
+                toastr.success(res.message);
+                $('#agencyWiseCompanyEditModal').modal('hide');
+                agencyWiseCompanyLoaded = false;
+                loadAgencyWiseCompany();
+            },
+            error: function() { toastr.error('Something went wrong'); },
+            complete: function() { $btn.prop('disabled', false).text('Update'); }
         });
     });
 

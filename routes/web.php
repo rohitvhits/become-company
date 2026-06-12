@@ -77,7 +77,10 @@ Route::post('/log-viewer-login', function (\Illuminate\Http\Request $request) {
 })->name('logviewer.login');
 
 Route::get('/', function () {
-
+	$host = request()->getHost();
+	if (in_array($host, ['becomecompany.com', 'becomecompany.test'])) {
+		return view('auth.login_becomecompany');
+	}
 	return view('auth.login');
 });
 Route::get('077C79CE9E66E83AE35EBD91E7B7FD14.txt', function () {
@@ -1709,6 +1712,9 @@ Route::group(['middleware' => ['XSS']], function () {
 		});
 
 		Route::post('/update-nybest-user-data', [\App\Http\Controllers\AgencyController::class, 'assignNybestUserToAgency']);
+		Route::get('/agency/wise-company-list',    [\App\Http\Controllers\AgencyController::class, 'agencyWiseCompanyList']);
+		Route::get('/agency/wise-company-options', [\App\Http\Controllers\AgencyController::class, 'agencyWiseCompanyOptions']);
+		Route::post('/agency/wise-company-update', [\App\Http\Controllers\AgencyController::class, 'agencyWiseCompanyUpdate']);
 		Route::get('/get-service-requested', [\App\Http\Controllers\PatientWiseServiceRequestController::class, 'resolutionAjaxServiceRequested']);
 		Route::post('/save-pateint-service-requested', [\App\Http\Controllers\ResolutionController::class, 'resolutionSaveServiceRequested']);
 		Route::get('dpp-text-message', [\App\Http\Controllers\DownloadController::class, 'downloadTextMessageImage']);
@@ -2054,3 +2060,6 @@ require __DIR__ . '/web_task_health.php';
 require __DIR__ . '/web_agency_file_manager.php';
 require __DIR__ . '/web_call_appointment.php';
 require __DIR__ . '/web_alayacare.php';
+
+// Domain Config Routes
+Route::resource('domain-config', \App\Http\Controllers\DomainConfigController::class);

@@ -13,7 +13,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>NY BEST MEDICAL</title>
+    <title>{{ $appTitle }}</title>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
@@ -58,9 +58,56 @@
     <script src="<?= URL::to('assets/js/sweetalert2.min.js') ?>"></script>
     <link rel="stylesheet" href="<?php echo URL::to('/'); ?>/assets/jquery-confirmation/css/jquery-confirm.min.css">
     <link rel="stylesheet" href="<?php echo URL::to('/'); ?>/assets/modulejs/css/header.css">
-    <link rel="shortcut icon" href="<?= URL::to('img/favicon.png') ?>" />
-
-
+    <link rel="shortcut icon" href="{{ asset($appFavicon) }}" />
+    <style>
+        :root { --theme-color: {{ $appThemeColor }}; --theme-text-hover: #4FC3F7; }
+        .navbar-brand-wrapper,
+        .navbar,
+        .horizontal-layout .navbar,
+        .horizontal-layout .bottom-navbar,
+        .horizontal-layout .bottom-navbar .page-navigation .nav-item .nav-link,
+        .sidebar .nav .nav-item.active > .nav-link {
+            background-color: var(--theme-color) !important;
+        }
+        /* top navbar row - text color on hover/click/show */
+        .navbar-menu-wrapper .navbar-nav .nav-item:hover > .nav-link,
+        .navbar-menu-wrapper .navbar-nav .nav-item.show > .nav-link,
+        .navbar-menu-wrapper .navbar-nav .nav-item.active > .nav-link,
+        .navbar-menu-wrapper .navbar-nav .nav-item:hover > .nav-link i,
+        .navbar-menu-wrapper .navbar-nav .nav-item.show > .nav-link i,
+        .navbar-menu-wrapper .navbar-nav .nav-item.active > .nav-link i,
+        /* bottom navbar row */
+        .bottom-navbar .page-navigation .nav-item:hover > .nav-link,
+        .bottom-navbar .page-navigation .nav-item.show > .nav-link,
+        .bottom-navbar .page-navigation .nav-item.active > .nav-link,
+        .bottom-navbar .page-navigation .nav-item:hover > .nav-link i,
+        .bottom-navbar .page-navigation .nav-item.show > .nav-link i,
+        .bottom-navbar .page-navigation .nav-item.active > .nav-link i {
+            color: var(--theme-text-hover) !important;
+        }
+    </style>
+    @if(in_array(request()->getHost(), ['becomecompany.com', 'becomecompany.test']))
+    <style>
+        .horizontal-menu .top-navbar .navbar-brand-wrapper .navbar-brand img {
+            height: 96px;
+        }
+        .horizontal-menu .bottom-navbar .page-navigation>.nav-item.active>.nav-link .menu-title,
+        .horizontal-menu .bottom-navbar .page-navigation>.nav-item.active>.nav-link i,
+        .horizontal-menu .bottom-navbar .page-navigation>.nav-item:hover>.nav-link i,
+        .horizontal-menu .bottom-navbar .page-navigation>.nav-item:hover>.nav-link .menu-title {
+            color: #013054 !important;
+        }
+    </style>
+    @else
+    <style>
+        .horizontal-menu .bottom-navbar .page-navigation>.nav-item.active>.nav-link .menu-title,
+        .horizontal-menu .bottom-navbar .page-navigation>.nav-item.active>.nav-link i,
+        .horizontal-menu .bottom-navbar .page-navigation>.nav-item:hover>.nav-link i,
+        .horizontal-menu .bottom-navbar .page-navigation>.nav-item:hover>.nav-link .menu-title {
+            color: #97C229 !important;
+        }
+    </style>
+    @endif
 
 </head>
 
@@ -128,9 +175,9 @@ $agencyObj = Common::getAgencyDetails();
 
                 <div class="container-fluid">
                     <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-center">
-                        <a class="navbar-brand brand-logo" href="{{ URL::to('') }}/home"><img src="<?= URL::to('img/logo-ny.png') ?>">
+                        <a class="navbar-brand brand-logo" href="{{ URL::to('') }}/home"><img src="{{ asset($appLogo) }}">
                         </a>
-                        <a class="navbar-brand brand-logo-mini" href="{{ URL::to('') }}/home"><img src="<?= URL::to('img/favicon.png') ?>"></a>
+                        <a class="navbar-brand brand-logo-mini" href="{{ URL::to('') }}/home"><img src="{{ asset($appFavicon) }}"></a>
                     </div>
                     <div class="navbar-menu-wrapper d-flex align-items-center">
                         <div class="col-md-12 row ">
@@ -1477,6 +1524,11 @@ $agencyObj = Common::getAgencyDetails();
                                                 </a>
                                             </li>
                                         @endcan
+                                        <li class="nav-item {{ request()->is('domain-config*') ? 'active' : '' }}">
+                                            <a class="nav-link" href="{{ url('domain-config') }}">
+                                                <span class="menu-title">Company Master</span>
+                                            </a>
+                                        </li>
                                     </ul>
                                 </div>
 
