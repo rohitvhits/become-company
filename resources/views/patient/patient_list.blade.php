@@ -964,7 +964,7 @@
                                          <input type="button" name="search" class="btn btn-primary search-btn1 searchAppoinment" id="search-data" value="Search">
                                         @if(!in_array(auth()->user()->id,Common::agencyPortalRolePermission()))
                                         <a href="javascript:void(0)"
-                                            hrefd="{{URL::to('/')}}/patients/patient-export?agency_fk=&amp;full_name=&amp;status=&amp;appointment_date=&amp;location_id=&amp;service_id=&amp;type=&amp;created_date=&amp;sms_status=&amp;assign_user_id="
+                                            hrefd="{{URL::to('/')}}/patient/patient-export?agency_fk=&amp;full_name=&amp;status=&amp;appointment_date=&amp;location_id=&amp;service_id=&amp;type=&amp;created_date=&amp;sms_status=&amp;assign_user_id="
                                             class="btn btn-success btn-rounded btn-sm btn-fw  ml-1 btnExport" id="test_agency"><i
                                                 class="mdi mdi-file-export"></i>Export</a>
                                         @endif
@@ -1193,10 +1193,12 @@
                                                 @if (strtolower($row->status) == 'inactive')
                                                     <label for="" class='badge badge-danger'>{{ ucfirst($row->status)}}</label>
                                                 @endif
-                                             {{ $row->reason_name}}
-                                             @if(!empty($row->otherreasonname))
-                                                <i class="fa fa-info-circle ml-1" style="cursor: pointer; color: #17a2b8;" data-toggle="tooltip" data-placement="top" title="{{ $row->otherreasonname }}"></i>
-                                             @endif
+                                                @if(in_array(strtolower($row->status),['cancelled','refused']))
+                                                    {{ $row->reason_name}}
+                                                    @if(!empty($row->otherreasonname))
+                                                        <i class="fa fa-info-circle ml-1" style="cursor: pointer; color: #17a2b8;" data-toggle="tooltip" data-placement="top" title="{{ $row->otherreasonname }}"></i>
+                                                    @endif
+                                                @endif
 
                                          </td>
                                          <td><?= $row->agency_name ?> </td>
@@ -1255,7 +1257,7 @@
                                                     <label for="" class="badge badge-primary">Telehealth Appointment</label>
                                                     <br/>
                                                     {{date('m/d/Y', strtotime($row->telehealth_date_time))}}<br />
-                                                    {{$row->telehealth_time_slot}} <br/>
+                                                    {{$row->telehealth_time_frame ?: $row->telehealth_time_slot}} <br/>
                                                     Nurse: {{$row->telehealth_nurse}} <br/>
                                                 @endif
                                              @endif
@@ -1271,7 +1273,7 @@
                                                     <label for="" class="badge badge-primary">Telehealth Appointment</label>
                                                     <br/>
                                                     {{date('m/d/Y', strtotime($row->telehealth_date_time))}}<br />
-                                                    {{$row->telehealth_time_slot}} <br/>
+                                                    {{$row->telehealth_time_frame ?: $row->telehealth_time_slot}} <br/>
                                                     Nurse: {{$row->telehealth_nurse}} <br/>
                                                 @endif
                                              @endif
@@ -1768,6 +1770,7 @@
          var _CSRF_TOKEN = "{{ csrf_token()}}";
          var _FLAG = 1;
          var _BULK_APPOINTMENT_DELETE ="{{ url('bulk-appointments-delete')}}";
+         var _GET_DEPARTMENT = "{{ url('tasks/get-task-dept') }}";
          /* ..Start.. For page refresh when search data then show search area */
          $(document).ready(function() {
              var url = window.location.search;
@@ -1864,7 +1867,7 @@
     agency_status = agency_status != null ? agency_status : '';
     referral_type = referral_type != null ? referral_type : '';
     record_read = record_read != null ? record_read : '';
-    var links = "<?php echo URL::to('/'); ?>/patients/patient-export?sms_status=" + sms_status + "&status=" + status +
+    var links = "<?php echo URL::to('/'); ?>/patient/patient-export?sms_status=" + sms_status + "&status=" + status +
     "&agency_fk=" + agency_fk + "&first_name=" + first_name + "&mobile=" + mobile + "&service_id=" +
     service_id + "&assign_user_id=" + assign_user_id + "&due_date=" + due_date +
     "&appointment_date=" + appointment_date + "&locationId=" + locationId + "&created_date=" +
@@ -1908,6 +1911,7 @@
     links = links + "&agency_status=" + agency_status;
     links = links + "&referral_type=" + referral_type;
     links = links + "&record_read=" + record_read;
+    links = links + '&agency_rep='+$('#agency_updated_by').val()
     if(debug !=""){
     links = links + "&debug="+debug;
     }
@@ -1955,7 +1959,8 @@
     isPastShow: "{{ $isPastShow}}",
     agency_status: agency_status,
     referral_type: referral_type,
-    record_read:record_read
+    record_read:record_read,
+    agency_updated_by:$('#agency_updated_by').val()
     };
 
     // Show column selection modal

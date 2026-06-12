@@ -160,7 +160,7 @@
                                             <label for="" class='badge badge-danger'>{{ucfirst($row->status)}}</label>
                                         @endif
                                         <br>
-                                        {{ $row->reason_name}} 
+                                        {{ $row->reason_name}}
                                         @if(!empty($row->other_reason))
                                             <i class="fa fa-info-circle ml-1" style="cursor: pointer; color: #17a2b8;" data-toggle="tooltip" data-placement="top" title="{{ $row->other_reason }}"></i>
                                         @endif
@@ -313,7 +313,7 @@
                                         } ?>
                                         @endif
                                         @if (strtolower($row->patient->type) == 'patient')
-                                        @if ($row->appointment_date != '')
+                                        @if ($row->patient->appointment_date != '')
                                         {{ date('m/d/Y h:i A', strtotime($row->patient->appointment_date)) }}
                                         @endif
                                         @endif
@@ -322,7 +322,7 @@
 
                                     <td><?php echo date('m/d/Y h:i A', strtotime($row->created_at)); ?><br />
                                     @if(isset($row->userDetails->first_name))
-                                    {{ $row->userDetails->first_name . '' . $row->userDetails->last_name }} 
+                                    {{ $row->userDetails->first_name . '' . $row->userDetails->last_name }}
                                     @endif
                                        
                                     </td>

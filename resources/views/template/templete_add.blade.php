@@ -101,7 +101,7 @@
                                 </div>
                                 <div class="col-md-6 hide" id="template_type_div">
                                     <div class="form-group row">
-                                        <label class="col-sm-3 col-form-label" for="template_type">Template Type <span class="error" id="template_type_required">*</span></label>
+                                        <label class="col-sm-3 col-form-label" for="template_type">Template Type</label>
                                         <div class="col-sm-9">
                                             <select class="form-control" name="template_type" id="template_type">
                                                 <option value="">Select Template Type</option>
@@ -321,13 +321,13 @@
             }
 
             // Template Type required only when Caregiver is selected
-            if (lookup_field == 'caregiver') {
-                var template_type = $('#template_type').val();
-                if (template_type == '') {
-                    $('#template_type_error').html(" Required ");
-                    cnt = 1;
-                }
-            }
+            // if (lookup_field == 'caregiver') {
+            //     var template_type = $('#template_type').val();
+            //     if (template_type == '') {
+            //         $('#template_type_error').html(" Required ");
+            //         cnt = 1;
+            //     }
+            // }
 
             if (cnt == 1) {
                 return false;

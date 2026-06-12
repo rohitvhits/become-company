@@ -63,7 +63,6 @@ class AwsBedrockService
 
         return [
             'parsed' => $parsed,
-            'raw'    => $rawResponse,
         ];
     }
 

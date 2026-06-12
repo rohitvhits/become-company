@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\API\V2;
+namespace App\Http\Controllers\API\v2;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller as BaseController;

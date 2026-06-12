@@ -24,14 +24,10 @@ class DocumentSendService
 	}
 	public static function saveesign($data)
 	{
-		$userId = Auth()->user();
 		$data['created_date'] = date('Y-m-d H:i:s');
-
-
 		$insert = new DocumentSentReport($data);
 		$insert->save();
-		$insertId = $insert->id;
-		return $insertId;
+		return $insert->id;
 	}
 	public  function update($data, $where)
 	{

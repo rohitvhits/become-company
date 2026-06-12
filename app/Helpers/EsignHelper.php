@@ -1511,4 +1511,18 @@ class EsignHelper
 
 		return $url;
 	}
+
+	public function populateSignerType($name){
+		$map = [
+            'patient' => 'Patient',
+            'other' => 'Other',
+            'stampuser' => 'StampUser',
+            'formfill' => 'FormFill',
+            'sign' => 'Sign',
+            'stamp' => 'Stamp',
+            'sign&stamp' => 'Sign&Stamp',
+        ];
+
+		return $map[$name] ?? ucfirst($name);
+	}
 }

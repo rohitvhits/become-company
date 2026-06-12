@@ -12,7 +12,7 @@ use App\ZipCode;
 
 class SmsService{
 
-	public  function save($data){ 
+	public  function save($data){
 		$auth = auth()->user();
 		$data['created_by'] = $auth['id'];
 		$data['delete_flag'] = "N";
@@ -77,7 +77,7 @@ class SmsService{
 
 	public static function checkZipCode($p_id)
 	{
-		$patientData = Patient::select('zip_code')
+		$patientData = Patient::select('zip_code','type')
 			->where('id', $p_id)
 			->where('deleted_flag', 'N')
 			->first();
@@ -85,6 +85,9 @@ class SmsService{
 			return '0';
 		} 
 		else if (!empty($patientData->zip_code)) {
+			if(strtolower($patientData->type) == 'patient'){
+				return '1';
+			}
 			$zipExists = ZipCode::where('sms_status', '1')
 				->where('zip_code', $patientData->zip_code)
 				->where('deleted_flag','N')
@@ -94,5 +97,44 @@ class SmsService{
 		else {
 			return '1';
 		}
+	}
+
+	public function bulkEsignSmsDynamic($patientId,$phoneNo,$message){
+		$auth = auth()->user();
+		$checkZipCode = $this->checkZipCode($patientId);
+		$smsId = 0;
+		$status = "";
+		$date_updated="";
+		if($checkZipCode == 1){
+			$sendSms = Common::sendTwillioSms($phoneNo,$message);
+			if($patientId && $sendSms){
+				$json = json_decode($sendSms,true);
+				$date_updated = null;
+				$status = $json['status']??"";
+				if(isset($json['date_updated'])){
+					$date_updated = date('Y-m-d H:i:s',strtotime($json['date_updated']));
+				}
+				if (!array_key_exists('sid', $json)) {
+					$status = 'Undelivered ' . ($json['type'] ?? '');
+				}
+				$smsLogs = [
+					'patient_id' => $patientId,
+					'mobile_no' => $phoneNo,
+					'sms' => $message,
+					'send_sms_id' => $json['sid']??"",
+					'send_sms_status' => $status??"",
+					'send_sms_updated_date' =>$date_updated
+				];
+				if(isset($auth['id'])){
+					$smsLogs['created_by'] = $auth['id'];
+				}
+				$insert = new SMSLogs($smsLogs);
+				$insert->save();
+				$smsId =$json['sid']??"";
+
+			}
+		}
+		return ['smsId'=>$smsId,'status'=>$status,'date_updated'=>$date_updated];
+
 	}
 }

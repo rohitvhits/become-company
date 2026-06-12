@@ -44,6 +44,7 @@
     var _BASE_URL = "{{ url('/')}}";
     var _DELETE_ESIGN_TEMPLATE = "{{ url('esign/patient-docusign-delete') }}";
     var _SMS_EMAIL_ESIGN_TEMPLATE = "{{ url('esign/patient-send-sms-esign') }}";
+    var _BULK_SMS_EMAIL_ESIGN = "{{ url('esign/bulk-send-sms-esign') }}";
     var userNewId = "{{ $record->id }}";
     var _DOWNLOAD_URL = '{{ url("dre/")}}';
     var _SEND_DOCUMENT_MAIL = "{{ url('patient/send-document-mail') }}"

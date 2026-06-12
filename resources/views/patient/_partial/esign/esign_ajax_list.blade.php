@@ -1,9 +1,10 @@
 <table  class="table table-bordered">
     <thead>
         <tr>
-
+            {{--  @if(strtolower($record->type) =='caregiver')
+            <th style="width:40px;"><input type="checkbox" id="esignSelectAll" title="Select All"></th>
+            @endif--}}
             <th style="width:100px;">Record</th>
-
             <th>Template Name</th>
             <th>Status</th>
             <th>Sender</th>
@@ -11,7 +12,6 @@
             <th>Signers</th>
             <th>Added By</th>
             <th>Action</th>
-
         </tr>
     </thead>
     <tbody>
@@ -183,6 +183,13 @@
                     @endphp
                 @endif
                 <tr>
+                  {{--  @if(strtolower($record->type) =='caregiver')
+                        <td>
+                            @if($record->type == 'Caregiver' && !empty($v->caregiverSignPending) && $v->templete_id != 0 && $esignSendSms)
+                                <input type="checkbox" class="esign-bulk-checkbox" value="{{ $v->groupId }}" data-template-name="{{ $v->templateDetails->template_name ?? '' }}">
+                            @endif
+                        </td>
+                    @endif--}}
                     <td>{{ $cnt++ }}
                     @if($record->id != $v->main_intakeId)
                             <span class="badge badge-info">Merge</span>
@@ -225,7 +232,7 @@
             @endforeach
         @endif
         @if(count($response) ==0)
-        <tr><td colspan="8">No record available</td></tr>
+        <tr><td colspan="9">No record available</td></tr>
 
         @endif
     </tbody>

@@ -17,8 +17,8 @@ class AutoCallService
     // Max retries before marking no_response
     const MAX_CALL_ATTEMPTS = 3;
 
-    // Retry delay in hours between each attempt: attempt 1→2 = 1h, attempt 2→3 = 2h
-    const RETRY_DELAYS = [1, 2];
+    // Retry delay in hours between each attempt: attempt 1→2 = 1h, attempt 2→3 = 2h, attempt 3→no_response = 3h
+    const RETRY_DELAYS = [1, 2, 3];
 
     /**
      * Record the SMS send event and schedule the auto-call 4 hours later.

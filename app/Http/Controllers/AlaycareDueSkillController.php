@@ -9,6 +9,7 @@ use App\Services\PatientService;
 use App\Services\PatientServicesRequest;
 use App\Services\PatientWiseServicesRequests;
 use App\Helpers\Utility;
+use App\Helpers\Common;
 use App\Services\LogsService;
 use App\Services\AgencyService;
 use Illuminate\Support\Facades\Cache;
@@ -224,7 +225,7 @@ class AlaycareDueSkillController extends Controller
             'alaycare_id' => $getDetails->employeeDetails[0]->emp_id,
             'service_id' => implode(',',$data['service_id']),
             'diciplin' => $data['diciplin'],
-            'language' => $getDetails->employeeDetails[0]->language,
+            'language' => Common::getOrCreateLanguageId($getDetails->employeeDetails[0]->language),
             'county' => $getDetails->employeeDetails[0]->country,
             'dob' => $getDetails->employeeDetails[0]->birthday,
             'gender' =>$getDetails->employeeDetails[0]->gender,

@@ -704,6 +704,14 @@ $agencyObj = Common::getAgencyDetails();
                                                 </a>
                                             </li>
                                         @endcan
+                                        @can('call-details-list')
+                                        <li class="nav-item {{ request()->is('call-details') ? 'active' : '' }}">
+                                            <a class="nav-link" href="{{ url('call-details') }}">
+                                                <span class="menu-title">Call Details (CDR)</span>
+                                            </a>
+                                        </li>
+                                        @endcan
+
                                         @can('user-doc-approval-list')
                                             <li class="nav-item {{ request()->is('user-doc-approval*') ? 'active' : '' }}">
                                                 <a class="nav-link" href="{{ url('user-doc-approval')}}">
@@ -820,8 +828,8 @@ $agencyObj = Common::getAgencyDetails();
                                         @endcan
 
                                         @can('esign-report-list')
-                                        <li class="nav-item {{ request()->is('esign-report') ? 'active' : '' }}">
-                                            <a class="nav-link" href="{{ url('esign-report') }}">
+                                        <li class="nav-item {{ request()->is('esign/esign-report') ? 'active' : '' }}">
+                                            <a class="nav-link" href="{{ url('esign/esign-report') }}">
                                                 <span class="menu-title">Esign Report</span>
 
                                             </a>
@@ -1016,14 +1024,6 @@ $agencyObj = Common::getAgencyDetails();
                                                         <span class="menu-title">MDO485 Summary Report</span>
                                                     </a>
                                                 </li>
-                                            @endcan
-
-                                            @can('call-details-list')
-                                            <li class="nav-item {{ request()->is('call-details') ? 'active' : '' }}">
-                                                <a class="nav-link" href="{{ url('call-details') }}">
-                                                    <span class="menu-title">Call Details (CDR) Report</span>
-                                                </a>
-                                            </li>
                                             @endcan
 
                                     </ul>

@@ -126,8 +126,7 @@ class DocumentPatientService
 	}
 	public function getDetailsById($id)
 	{
-		$update = DocumentPatient::with('templeteDetails')->where('id', $id)->where('deleted_flag', 'N')->first();
-		return $update;
+		return DocumentPatient::with('templeteDetails')->where('id', $id)->where('deleted_flag', 'N')->first();
 	}
 
 	public function getDetailsByIdAll($id)
@@ -191,11 +190,8 @@ class DocumentPatientService
 
 	public function getDetailsByIdAllWithRequestedServiceId($id,$request_service_id)
 	{
-
-		$update = DocumentPatient::select('id','patient_id','document_name','attachment','document_completed_date')->whereIn('id', $id)->where('request_service_id',$request_service_id)->where('deleted_flag', 'N')->get();
-		return $update;
+		return DocumentPatient::select('id','patient_id','document_name','attachment','document_completed_date')->whereIn('id', $id)->where('request_service_id',$request_service_id)->where('deleted_flag', 'N')->get();
 	}
-
 
 	public function getTemplateData($template_id)
 	{
@@ -217,7 +213,7 @@ class DocumentPatientService
 
 	public function getAllDocumentListByServiceRequest($id,$requested_service_id)
 	{
-		$update = DocumentPatient::select('document_patient.*','users.first_name', 'users.last_name','uupdate.first_name as updated_first_name', 'uupdate.last_name as updated_last_name')->where('patient_id', $id)->where('request_service_id',$requested_service_id)
+		return DocumentPatient::select('document_patient.*','users.first_name', 'users.last_name','uupdate.first_name as updated_first_name', 'uupdate.last_name as updated_last_name')->where('patient_id', $id)->where('request_service_id',$requested_service_id)
 		->leftjoin('users', function ($join) {
 			$join->on('users.id', '=', 'document_patient.created_by');
 			$join->where('users.delete_flag', 'N');
@@ -225,8 +221,7 @@ class DocumentPatientService
 		->leftjoin('users as uupdate', function ($join) {
 			$join->on('uupdate.id', '=', 'document_patient.updated_by');
 			$join->where('uupdate.delete_flag', 'N');
-		})->get();
-		return $update;
+		})->where('internal_use',0)->get();
 	}
 
 	public function getPatientDocumentList($search,$patientIds,$paginate=""){
@@ -983,7 +978,7 @@ class DocumentPatientService
 		return DocumentPatient::select('patient_id','document_name','attachment','created_date','created_by','hha_document_id','hha_medical_doc_id','uploaded_to_hha','uploaded_complience_hha','request_service_id','document_completed_date','templete_id','is_checked','agency_form_id','flag','reason','internal_use','send_third_party','send_third_party_date','send_third_party_by','document_review_status','document_review_date','document_review_by','assign_document_review','status_note')->where('deleted_flag','N')->where('id',$id)->where('patient_id',$pid)->first();
 	}
 
-	public function getAllDocumentListByApi($patientId,$search){
+	public function getAllDocumentListByApi($patientId,$search,$offSet){
 		$query = DocumentPatient::select('id','patient_id','document_name','created_date','created_by','document_completed_date')->with('patientDetails:id,first_name,last_name,email,phone,patient_code,mobile,dob')->whereIn('patient_id',$patientId)->where('deleted_flag','N');
 		$startDate = "";
 		$endDate = "";
@@ -996,7 +991,7 @@ class DocumentPatientService
 			$endDate = date('Y-m-d',strtotime($search['end_date'])).' 23:59:59';
 		}
 
-		$query = $query->where('created_date','>=',$startDate)->where('created_date','<=',$endDate)->orderBy('id','desc')->get();
+		$query = $query->where('created_date','>=',$startDate)->where('created_date','<=',$endDate)->offset($offSet)->limit(50)->orderBy('id','desc')->get();
 		return $query;
 	}
 
@@ -1024,7 +1019,7 @@ class DocumentPatientService
 
 	public function getAllDocumentListById($doc_id)
 	{
-		$update = DocumentPatient::select('document_patient.*','users.first_name', 'users.last_name','uupdate.first_name as updated_first_name', 'uupdate.last_name as updated_last_name')->whereIn('document_patient.id', $doc_id)
+		return  DocumentPatient::select('document_patient.*','users.first_name', 'users.last_name','uupdate.first_name as updated_first_name', 'uupdate.last_name as updated_last_name')->whereIn('document_patient.id', $doc_id)
 		->leftjoin('users', function ($join) {
 			$join->on('users.id', '=', 'document_patient.created_by');
 			$join->where('users.delete_flag', 'N');
@@ -1032,8 +1027,7 @@ class DocumentPatientService
 		->leftjoin('users as uupdate', function ($join) {
 			$join->on('uupdate.id', '=', 'document_patient.updated_by');
 			$join->where('uupdate.delete_flag', 'N');
-		})->get();
-		return $update;
+		})->where('internal_use',0)->get();
 	}
 
 	public function getLastDocumentByPatientId($patientId){

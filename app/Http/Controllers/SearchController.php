@@ -2,14 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Routing\Controller as BaseController;
-use Illuminate\Foundation\Validation\ValidatesRequests;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Input;
-use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Validator;
 use App\Helpers\Utility;
 use App\Master;
 use App\Agency;
@@ -20,12 +13,12 @@ use App\Services\TelehealthLocationScheduleEventService;
 class SearchController extends BaseController
 {
 	
-	protected $PatientService = "";
+	protected $patientService = "";
 	protected $telehealthLocationScheduleEventService = "";
-    public function __construct(PatientService $PatientService, TelehealthLocationScheduleEventService $telehealthLocationScheduleEventService)
+    public function __construct(PatientService $patientService, TelehealthLocationScheduleEventService $telehealthLocationScheduleEventService)
     {
         $this->middleware('auth');
-		$this->PatientService = $PatientService;
+		$this->patientService = $patientService;
 		$this->telehealthLocationScheduleEventService = $telehealthLocationScheduleEventService;
     }
 	
@@ -43,7 +36,7 @@ class SearchController extends BaseController
 				return Agency::where('delete_flag', 'N')->orderBy('agency_name', 'asc')->get();
 			},10 * 60);
 			$agencyIds = $angecyList->pluck('id');
-			$query = $this->PatientService->search($search,$agencyIds);
+			$query = $this->patientService->search($search,$agencyIds);
 			
 			$nurse= Cache::get('patient_master_nurse_user', function () {
 				$nurse = User::getNurses();
@@ -116,12 +109,18 @@ class SearchController extends BaseController
 					$vsl->name = implode(', ', $nrens[$vsl->id]);
 				}
 				
-				if (isset($vsl->telehealth_time_slot) && $vsl->telehealth_time_slot !="") {
+				if (!empty($vsl->telehealth_time_frame)) {
+					// Patient type: nurse ID is stored directly in telehealth_nurse
+					$rawNurseId = $vsl->telehealth_nurse;
+					if (!empty($rawNurseId) && isset($nurse[$rawNurseId])) {
+						$vsl->telehealth_nurse = 'C#' . $rawNurseId . '(' . $nurse[$rawNurseId]['language'] . ')';
+					}
+				} elseif (isset($vsl->telehealth_time_slot) && $vsl->telehealth_time_slot != "") {
 					$telhealth = $this->telehealthLocationScheduleEventService->getTelehalthappointemntScheduledata($vsl->telehealth_time_slot);
 					$vsl->telehealth_time_slot = isset($telhealth['start_time']) ? $telhealth['start_time'] . ' - ' . $telhealth['end_time'] : '';
-					$nLanguage="";
-					if(!empty($telhealth['nurse_id']) && isset($nurse[$telhealth['nurse_id']]) && array_key_exists($telhealth['nurse_id'],$nurse)){
-						$nLanguage = isset($telhealth['nurse_id']) ? 'C#'.$telhealth['nurse_id'].'('.$nurse[$telhealth['nurse_id']]['language'].')' : '';
+					$nLanguage = "";
+					if (!empty($telhealth['nurse_id']) && isset($nurse[$telhealth['nurse_id']]) && array_key_exists($telhealth['nurse_id'], $nurse)) {
+						$nLanguage = 'C#' . $telhealth['nurse_id'] . '(' . $nurse[$telhealth['nurse_id']]['language'] . ')';
 					}
 					$vsl->telehealth_nurse = $nLanguage;
 				}

@@ -216,4 +216,8 @@ class LocationMasterService{
             ->values()
             ->all();
     }
+
+	public function getAllLocationUsingPluck(){
+		return LocationMaster::where('delete_flag','N')->pluck('location_name','id')->toArray();
+	}
 }

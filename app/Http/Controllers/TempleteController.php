@@ -186,7 +186,8 @@ class TempleteController extends Controller
 					'link' => url('/template'),
 					'module' => 'Template',
 					'module_id' => $getNewData->id,
-					'new_response' => serialize($getNewData)
+					'new_response' => serialize($getNewData),
+					'message'=>$admin_login->first_name . ' ' . $admin_login->last_name . ' has added Template',
 				];
 				$this->dynamicFormLogAction($insertLog);
 
@@ -493,7 +494,8 @@ class TempleteController extends Controller
 				'module' => 'Template',
 				'module_id' => $id,
 				'new_response' => serialize($sub_raay),
-				'old_response' => serialize($oldResponse->toArray())
+				'old_response' => serialize($oldResponse->toArray()),
+				'message' => $admin_login->first_name . ' ' . $admin_login->last_name . ' has deleted Template',
 			];
 			$this->dynamicFormLogAction($dynamicFormResponseLog);
 
@@ -677,7 +679,7 @@ class TempleteController extends Controller
 				'link' => url('/insertReceiptSigner'),
 				'module' => 'Template',
 				'object_id' => request("template_id"),
-				'message' => $getTempalateData->full_name . ' has signer Template', // apply accesor from model for full name
+				'message' => $getTempalateData->full_name . ' has signer Template',
 				'new_response' => serialize($sub_data),
 			];
 			$this->logAction($insertLog);
@@ -690,9 +692,9 @@ class TempleteController extends Controller
 				'module' => 'Template',
 				'module_id' => request("template_id"),
 				'new_response' => serialize($getNewData),
-				'old_response' => serialize($getExistingData)
+				'old_response' => serialize($getExistingData),
+				'message' => $getTempalateData->full_name . ' has signer Template',
 			];
-
 			$this->dynamicFormLogAction($insertLog);
 			
 			Session::flash('success', 'Signer successfully inserted.');
@@ -877,7 +879,8 @@ class TempleteController extends Controller
 				'module' => 'Template',
 				'module_id' => $templateId,
 				'new_response' => serialize($getNewData),
-				'old_response' => serialize($getExistingData->toArray())
+				'old_response' => serialize($getExistingData->toArray()),
+				'message' => $query->full_name . ' has status Template',
 			];
 			$this->dynamicFormLogAction($insertLog);
 
@@ -1386,13 +1389,16 @@ class TempleteController extends Controller
 		$data['login_id'] = $auth['id'] ?? '';
 		
 		$id = $request->id;
+		
 		if(isset($request->type) && $request->type !=""){
+			$getDocumentExistingData = $this->documentPatientService->getDocumentDetailsById($id);
 			$document = $this->documentSendService->getWriteDataByID($id,$request->type);
 
 			if(isset($document->id)){
+				$document->document_name = $getDocumentExistingData->document_name;
 				$data['document'] = $document;
 			}else{
-				$getDocumentExistingData = $this->documentPatientService->getDocumentDetailsById($id);
+				
 				if(isset($getDocumentExistingData->id)){
 					$saveData = [
 						'document_patient_id'=>$getDocumentExistingData->id,
@@ -2052,7 +2058,7 @@ class TempleteController extends Controller
 					'is_status' => 'Added',
 					'message'=>$message,
 				];
-
+			
 				$this->dynamicFormLogAction($insertLog);
 				
 				$insertLog = [
@@ -2582,18 +2588,23 @@ class TempleteController extends Controller
 	}
 
 	protected function dynamicFormLogAction($data){
+
 		$insertLog = [
 			'type' => $data['type'],
 			'link' =>$data['link'],
 			'module' => $data['module'],
 			'module_id' => $data['module_id'],
-			'new_response' => serialize($data['new_response']),
+			'new_response' => $data['new_response'],
 			'ip'=> Utility::getIP(),
+			'is_status'=>$data['is_status']??"",
+			'message'=>$data['message']??"",
+			'esign_new_response'=>$data['esign_new_response']??""
 		];
 
 		if(isset($data['old_response'])){
-			$insertLog['old_response']= serialize($data['old_response']);
+			$insertLog['old_response']= $data['old_response'];
 		}
+
 		$this->dynamicFormLogService->storeFormLog($insertLog);
 	}
 

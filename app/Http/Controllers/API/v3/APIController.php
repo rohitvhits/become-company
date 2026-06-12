@@ -28,6 +28,7 @@ use App\Services\LogsService;
 use App\Services\ThirdPartyPatientMasterService;
 use App\Services\DocumentUploadService;
 use App\Services\PatientServicesRequest;
+use App\Helpers\Common;
 class APIController extends BaseController
 {
 	public $successStatus = 200;
@@ -374,7 +375,7 @@ class APIController extends BaseController
 				'service_id' => implode(',',$serviceIdArray),
 				'patient_code' => $request->patient_code,
 				'diciplin' => $request->diciplin,
-				'language' => $request->language,
+				'language' => Common::getOrCreateLanguageId($request->language),
 				'address1' => $request->address1,
 				'address2' => $request->address2,
 				'state' => $request->state,

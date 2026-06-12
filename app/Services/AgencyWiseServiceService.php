@@ -100,4 +100,24 @@ class AgencyWiseServiceService{
         $query->where('master_table.is_disable',1);
         return $query->where('agency_wise_service.agency_id',$agencyId)->whereNull('agency_wise_service.deleted_date')->get();
     }
+
+    public  function serviceListNewWithoutNyBestUserAPI($type="",$agencyId=""){
+        if(empty($agencyId)){
+            $auth   =auth()->user();
+            $agencyId = $auth->agency_fk;
+        }
+
+       $query=  AgencyWiseService::selectRaw('*,agency_wise_service.service_id as id')
+       ->join('master_table',function($join){
+        $join->on('master_table.id','=','agency_wise_service.service_id');
+       });
+       $query->where('master_table.is_disable',1);
+       if(auth()->user() && auth()->user()->agency_fk !=""){
+        $query->where('master_table.enabled_nybest_user',0);
+       }
+       if($type !=""){
+        $query->where('agency_wise_service.type',$type);
+       }
+       return $query->where('agency_wise_service.agency_id',$agencyId)->whereNull('agency_wise_service.deleted_date')->get();
+   }
 }

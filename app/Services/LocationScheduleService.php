@@ -88,6 +88,8 @@ class LocationScheduleService{
 		return $update;
 	}
 	
-	
+	public function getAllLocationSchedule(){
+		return LocationSchedule::where('del_flag','N')->pluck('start_time','id')->toArray();
+	}
 	
 }

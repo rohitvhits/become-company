@@ -328,15 +328,6 @@ span.select2.select2-container.select2-container--default {
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group row">
-                                        <label class="col-sm-3 col-form-label">State</label>
-                                        <div class="col-sm-9">
-                                            <input type="text" class="form-control charCls" placeholder="Enter State" id="state" name="state" value="{{ $patient['state'] }}" maxlength="50">
-                                            <span id="state_error" class="error mt-2"><?php echo $errors->add_record->first('state'); ?></span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group row">
                                         <label class="col-sm-3 col-form-label">City</label>
                                         <div class="col-sm-9">
                                             <input type="text" class="form-control charCls" placeholder="Enter City" id="city" name="city" value="{{ $patient['city'] }}" maxlength="50">
@@ -344,6 +335,16 @@ span.select2.select2-container.select2-container--default {
                                         </div>
                                     </div>
                                 </div>
+                                <div class="col-md-6">
+                                    <div class="form-group row">
+                                        <label class="col-sm-3 col-form-label">State</label>
+                                        <div class="col-sm-9">
+                                            <input type="text" class="form-control charCls" placeholder="Enter State" id="state" name="state" value="{{ $patient['state'] }}" maxlength="50">
+                                            <span id="state_error" class="error mt-2"><?php echo $errors->add_record->first('state'); ?></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
                                 <div class="col-md-6">
                                     <div class="form-group row">
                                         <label class="col-sm-3 col-form-label">Zip Code</label>
@@ -355,7 +356,7 @@ span.select2.select2-container.select2-container--default {
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group row">
-                                        <label class="col-sm-3 col-form-label">Country</label>
+                                        <label class="col-sm-3 col-form-label">County</label>
                                         <div class="col-sm-9">
                                             <input type="text" class="form-control" id="county" name="county" readonly onkeypress="return isNumber(event)" value="{{ $patient['county'] }}">
                                             <span id="zip_code_error" class="error mt-2"><?php echo $errors->add_record->first('county'); ?></span>

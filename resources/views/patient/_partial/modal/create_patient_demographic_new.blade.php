@@ -247,6 +247,15 @@
 
                             </div>
                         </div>
+                         <div class="col-md-3">
+                            <div class="form-group">
+                                <label class=" col-form-label">City</label>
+                               
+                                    <input type="text" class="form-control charCls form-control-sm" placeholder="Enter City" id="city" name="city" value="<?php echo old('city'); ?>" maxlength="50">
+                                    <span id="city_error" class="error mt-2"><?php echo $errors->add_record->first('city'); ?></span>
+                               
+                            </div>
+                        </div>
                         <div class="col-md-3">
                             <div class="form-group">
                                 <label class=" col-form-label">State</label>
@@ -256,15 +265,7 @@
                                 
                             </div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label class=" col-form-label">City</label>
-                               
-                                    <input type="text" class="form-control charCls form-control-sm" placeholder="Enter City" id="city" name="city" value="<?php echo old('city'); ?>" maxlength="50">
-                                    <span id="city_error" class="error mt-2"><?php echo $errors->add_record->first('city'); ?></span>
-                               
-                            </div>
-                        </div>
+                       
                         <div class="col-md-3">
                             <div class="form-group">
                                 <label class="col-form-label">Zip Code</label>

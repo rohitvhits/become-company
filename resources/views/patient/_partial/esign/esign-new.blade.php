@@ -15,12 +15,16 @@
             <p class="card-title mb-0">Esign Section</p>
             @can('esign-list')
                 <p class="mb-0 tx-13 ">
+                    
                     <a  class=" btn btn-primary btn-sm pull-right" onclick="esignResponseNew1()"><i class="mdi mdi-refresh"></i> Refresh</a>
-                    @can('esign-add')
+                    @can('esign-add')  
                     <a data-toggle="modal" class=" mr-3 btn btn-info btn-sm  d-none d-md-block pull-right" data-target="#exampleModal-esign-new" data-whatever="@mdo" style="color:#fff" onclick="loadTemplateNew();loadDoctorListNew();"><i class="mdi mdi-plus"></i> Add Esign</a>
                     @endcan
                     @can('esign-upload-document')
                     <a data-toggle="modal" class=" mr-3 btn btn-info btn-sm  d-none d-md-block pull-right" data-target="#exampleModal-upload-document-new" data-whatever="@mdo" style="color:#fff" onclick="refreshEsignUploadDocument()"><i class="mdi mdi-plus"></i>Upload Document</a>
+                    @endcan
+                    @can('esign-send-sms')
+                    <a class="btn btn-success btn-sm pull-right mr-2" id="bulkSendEsignBtn" style="display:none;color:#fff" onclick="openBulkSendEsignModal()"><i class="mdi mdi-send"></i> Bulk Send</a>
                     @endcan
                 </p>
             @endcan
@@ -69,3 +73,4 @@
 @include('patient._partial.esign.upload_document_modal_new')
 @include('patient._partial.esign.esign_sms_modal_new')
 @include('patient._partial.esign.esign_log_modal')
+@include('patient._partial.esign.esign_bulk_sms_modal')

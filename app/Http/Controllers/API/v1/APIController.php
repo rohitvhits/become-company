@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\API\V1;
+namespace App\Http\Controllers\API\v1;
 
 use App\Agency;
 use Illuminate\Http\Request;
@@ -25,6 +25,7 @@ use App\Model\TokenwiseApiCall;
 use App\Services\LogsService;
 use App\Services\PatientServicesRequest;
 use App\Helpers\Utility;
+use App\Helpers\Common;
 use Illuminate\Support\Facades\Mail;
 use App\Model\PatientServiceRequest;
 use App\Model\PatientWiseServiceRequest;
@@ -360,7 +361,7 @@ class APIController extends BaseController
 					'service_id' => implode(',',$serviceIdArray),
 					'patient_code' => $request->patient_code,
 					'diciplin' => $request->diciplin,
-					'language' => $request->language,
+					'language' => Common::getOrCreateLanguageId($request->language),
 					'address1' => $request->address1,
 					'address2' => $request->address2,
 					'state' => $request->state,

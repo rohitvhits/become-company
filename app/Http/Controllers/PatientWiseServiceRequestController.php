@@ -352,16 +352,17 @@ class PatientWiseServiceRequestController extends Controller
 				$servicesArray[$val->id] = [];
 				if (!empty($val->patientServiceRequestRelationShip[0])) {
 
-
 					foreach ($val->patientServiceRequestRelationShip as $sr) {
-						if (isset($temp[$sr->patient_service_request_id])) {
-							$temp[$sr->patient_service_request_id][] = $sr->services[0]->name;
-						} else {
-							$temp[$sr->patient_service_request_id] = [];
-							$temp[$sr->patient_service_request_id][] = $sr->services[0]->name;
-						}
+						if(isset($sr->services[0])){
+							if (isset($temp[$sr->patient_service_request_id])) {
+								$temp[$sr->patient_service_request_id][] = $sr->services[0]->name;
+							} else {
+								$temp[$sr->patient_service_request_id] = [];
+								$temp[$sr->patient_service_request_id][] = $sr->services[0]->name;
+							}
 
-						$servicesArray[$val->id] = $temp[$sr->patient_service_request_id];
+							$servicesArray[$val->id] = $temp[$sr->patient_service_request_id];
+						}
 					}
 				}
 
@@ -889,22 +890,25 @@ class PatientWiseServiceRequestController extends Controller
 
 	public function patientServiceRequestedAjaxList(Request $request)
 	{
-	//	ini_set('memory_limit', '4096M');
 		$data['menu'] = "Patient List";
 		$data['user'] = auth()->user();
 		$searchQuery = $request->all();
 
 		$query = $this->patientServicesRequest->patientRequestedServiceList($searchQuery);
-		if (count($query) > 0) {
-			foreach ($query as $val) {
-				$reasonName = "";
-				if ($val->reason_id != "") {
-					$details  = Master::select('name')->where('id', $val->reason_id)->first();
-					$reasonName = $details->name ?? "";
-				}
-				$val->reason_name = $reasonName;
-			}
+
+		// Optimized: Batch-fetch all reason names in one query instead of N+1 queries inside the loop
+		$reasonIds = $query->pluck('reason_id')->filter()->unique()->values()->all();
+		$reasonNames = [];
+		if (!empty($reasonIds)) {
+			$reasonNames = Master::select('id', 'name')->whereIn('id', $reasonIds)->pluck('name', 'id')->all();
 		}
+
+		foreach ($query as $val) {
+			$val->reason_name = ($val->reason_id != "" && isset($reasonNames[$val->reason_id]))
+				? $reasonNames[$val->reason_id]
+				: "";
+		}
+
 		$data['query'] = $query;
 		return view("patient_request_service/patient_and_service_request_ajax_list", $data);
 	}

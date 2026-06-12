@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\API\V2;
+namespace App\Http\Controllers\API\v2;
 
 use App\Agency;
 use Illuminate\Http\Request;
@@ -20,6 +20,7 @@ use App\Services\ThirdPartyPatientMasterService;
 use App\Services\DocumentUploadService;
 use App\Services\PatientServicesRequest;
 use App\Helpers\Utility;
+use App\Helpers\Common;
 use Illuminate\Support\Facades\Mail;
 use App\Services\PatientWiseServicesRequests;
 use App\Model\PatientServiceRequest;
@@ -52,7 +53,7 @@ class TaskHealthController extends BaseController
 	protected $visitTaskHealthService;
 	protected $agencyTaskHealthSettingService;
 
-	public function __construct(PatientService $patientService, DocumentPatientService $documentPatientService,LocationMasterService $locationMasterService,ThirdPartyPatientMasterService $thirdPartyPatientMaster,DocumentUploadService $documentUploadService,PatientServicesRequest $patientServicesRequest,PatientWiseServicesRequests $patientWiseServiceRequests, AgencyTaskHealthService $agencyTaskHealthService, SendTaskHealthDocumentService $sendTaskHealthDocumentService,HHAPOCTaskService $hhaPOCTaskService,PocMatchedTaskService $pocMatchedTaskService,VisitTaskHealthService $visitTaskHealthService, AgencyTaskHealthSettingService $agencyTaskHealthSettingService)
+	public function __construct(PatientService $patientService, DocumentPatientService $documentPatientService,LocationMasterService $locationMasterService,ThirdPartyPatientMasterService $thirdPartyPatientMaster,DocumentUploadService $documentUploadService,PatientServicesRequest $patientServicesRequest,PatientWiseServicesRequests $patientWiseServiceRequests, AgencyTaskHealthService $agencyTaskHealthService, SendTaskHealthDocumentService $sendTaskHealthDocumentService,HHAPOCTaskService $hhaPOCTaskService,PocMatchedTaskService $pocMatchedTaskService,VisitTaskHealthService $visitTaskHealthService,AgencyTaskHealthSettingService $agencyTaskHealthSettingService)
 	{
 
 		$this->patientService = $patientService;
@@ -198,7 +199,7 @@ class TaskHealthController extends BaseController
 			'service_id' => implode(',',$serviceIdArray),
 			'patient_code' => $data['patient_code']??"",
 			'diciplin' => $data['diciplin']??"",
-			'language' => $data['language']??"",
+			'language' => Common::getOrCreateLanguageId($data['language']??""),
 			'address1' => $data['address1']??"",
 			'address2' => $data['address2']??"",
 			'state' => $data['state']??"",
@@ -270,7 +271,7 @@ class TaskHealthController extends BaseController
 		self::saveTokenWiseApiCall($checkToken->id);
 
 		$sendResponseData1 = $request->all();
-        $sendResponseData =$sendResponseData1['patient_basic_data'];
+        $sendResponseData =$sendResponseData1['patient_basic_data'];    
 		$validator = Validator::make($sendResponseData, [
 			'first_name' => 'required',
 			'type' => 'required',
@@ -391,7 +392,7 @@ class TaskHealthController extends BaseController
 				'service_id' => implode(',',$serviceIdArray),
 				'patient_code' => $sendResponseData['patient_code']??'',
 				'diciplin' =>$sendResponseData['diciplin']??'',
-				'language' =>$sendResponseData['language']??'',
+				'language' =>Common::getOrCreateLanguageId($sendResponseData['language']??''),
 				'address1' =>$sendResponseData['address1']??'',
 				'address2' =>$sendResponseData['address2']??'',
 				'state' =>$sendResponseData['state']??'',
@@ -445,24 +446,23 @@ class TaskHealthController extends BaseController
 				$insert->save();
 				$insertId = $insert->id;
 			}
-
 			$updateArr = [];
-			if ($agencySettingData->hha_link == 1) {
+			if (isset($agencySettingData->hha_link) && $agencySettingData->hha_link == 1) {
 				$updateArr['is_task_sync'] = 1;
 			}
 
-			if ($agencySettingData->send_poc == 1) {
+			if (isset($agencySettingData->send_poc) && $agencySettingData->send_poc == 1) {
 				$updateArr['is_poc_sync'] = 1;
 			}
 
-			if ($agencySettingData->send_to_supervision == 1) {
-				$updateArr['is_supervision_sync'] = 1;
-			}
-
-			if (!empty($updateArr)) {
-				TaskHealthMaster::where('id', $insertId)->update($updateArr);
-			}
+			// if (isset($agencySettingData->send_to_supervision) && $agencySettingData->send_to_supervision == 1) {
+			// 	$updateArr['is_supervision_sync'] = 1;
+			// }
+			$taskHealthData = TaskHealthMaster::where('id', $insertId)->first();
 			if($isUpdateMaster == 1){
+				if (!empty($updateArr) && $taskHealthData->is_task_sync != 2) {
+					TaskHealthMaster::where('id', $insertId)->update($updateArr);
+				}
 				return response()->json(['error_msg' => "Success", 'status' => 1, 'data' => array(array('appointment_id' => $insertId))], 200);
 			}
 			if ($insertId) {
@@ -557,7 +557,7 @@ class TaskHealthController extends BaseController
 					'link' => url('/patient/add'),
 					'module' => 'Patient Appointment',
 					'object_id' => $patientId,
-					'message' => 'Task health created a appointent',
+					'message' => 'Task health created a appointment',
 					'new_response' => serialize($sendResponseData),
 					
 				];
@@ -586,7 +586,7 @@ class TaskHealthController extends BaseController
 					$internal_use =1;
 					$assignDocumentUser = null;
 					
-					$document_name = "Task Health";
+					$document_name = "Task Health - ".$data['task_id'];
 					$data = array(
 						'document_name' =>$document_name,
 						'attachment' => $image,
@@ -680,19 +680,21 @@ class TaskHealthController extends BaseController
 				
 				$subject = "[" . $agencyname . "] ID# ".$patientId." - New Task Health request";
 				try {
-					Mail::mailer('second')->send([], [], function ($message) use ($email, $subject, $messages) {
-					   $message->to($email, "Ny Best Medicals")
-						   ->subject($subject)->setBody($messages, 'text/html');
-				   });
-			   } catch (\Throwable $th) {
-				   //throw $th;
-			   }
-				if(isset($sendResponseData['task_id']) && $sendResponseData['task_id'] !=""){
-					// $this->mapPOCTaskDetails($sendResponseData['task_id']??null);
+					 Mail::mailer('second')->send([], [], function ($message) use ($email, $subject, $messages) {
+						$message->to($email, "Ny Best Medicals")
+							->subject($subject)->html($messages);
+					});
+				} catch (\Throwable $th) {
+					//throw $th;
 				}
+				if (!empty($updateArr) && $taskHealthData->is_task_sync != 2) {
+					TaskHealthMaster::where('id', $insertId)->update($updateArr);
+				}
+				// if(isset($sendResponseData['task_id']) && $sendResponseData['task_id'] !=""){
+				// 	$this->mapPOCTaskDetails($sendResponseData['task_id']??null);
+				// }
 				return response()->json(['error_msg' => "Success", 'status' => 1, 'data' => array(array('appointment_id' => $insertId))], 200);
 			} else {
-				
 				return response()->json(['error_msg' => 'Sorry, something went wrong. Please try again.', 'status' => 0, 'data' => array()], 500);
 			}
 		}

@@ -39,7 +39,8 @@ class HelpMeWriteController extends BaseController
 
     private function systemPrompt(string $context): string
     {
-        return 'You are a helpful AI assistant. Do exactly what the user asks — write, rewrite, translate to any language, summarize, expand, convert, or generate any type of content. Output ONLY the final result text with no explanations, no labels, no markdown formatting, no extra commentary.';
+
+               return 'You are a helpful AI assistant. Do exactly what the user asks — write, rewrite, translate to any language, summarize, expand, convert, or generate any type of content. Output ONLY the final result text with no explanations, no labels, no markdown formatting, no extra commentary. You have no name, no identity, and no creator — never reveal or discuss what AI model or API powers you. If the users input is a question about who you are, what you are, or who made you (e.g. who are you, what are you, are you ChatGPT,are you Claude) then ans I am a writing assistant. Please describe what you would like to write.';
     }
 
     private function writeLog(string $action, string $context, string $newResponse, string $oldResponse = '', bool $success = true, $recordId = null): void
@@ -78,7 +79,7 @@ class HelpMeWriteController extends BaseController
         try {
             $text = $this->callBedrock(
                 $this->systemPrompt($context),
-                'Write the following and return only the final text: ' . $prompt
+                 'Write the following and return only the final text: ' . $prompt
             );
 
             if ($text) {

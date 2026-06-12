@@ -4,6 +4,7 @@ namespace App\Helpers;
 
 use App\Model\Patient;
 use App\Model\ResolutionSmsTemplate;
+use App\Model\TelehealthLocationScheduleEvent;
 
 class ResolutionSmsHelper
 {
@@ -14,11 +15,12 @@ class ResolutionSmsHelper
         }
         $patientName = "";
         $date = "";
+        $time = "";
         $mobile = "";
         $phone = "";
 
         if ($patientId != "") {
-            $PatientDetails = Patient::with('agencyDetail')->select('id','agency_id','first_name', 'last_name', 'phone', 'telehealth_date_time', 'mobile')
+            $PatientDetails = Patient::with('agencyDetail')->select('id','agency_id','first_name', 'last_name', 'phone', 'telehealth_date_time', 'telehealth_time_slot', 'mobile','telehealth_time_frame')
                 ->where('id', $patientId)
                 ->where('deleted_flag', 'N')
                 ->first();
@@ -31,6 +33,17 @@ class ResolutionSmsHelper
                 if (!empty($PatientDetails->telehealth_date_time)) {
                     $date = date('m/d/Y', strtotime($PatientDetails->telehealth_date_time));
                 }
+                if(!empty($PatientDetails->telehealth_time_frame)){
+                    $time = $PatientDetails->telehealth_time_frame ? $PatientDetails->telehealth_time_frame :"";
+                }
+                elseif (!empty($PatientDetails->telehealth_time_slot)) {
+                    $slot = TelehealthLocationScheduleEvent::where('id', $PatientDetails->telehealth_time_slot)
+                        ->select('start_time', 'end_time')
+                        ->first();
+                    if ($slot) {
+                        $time = date('h:i A', strtotime($slot->start_time)) . ' - ' . date('h:i A', strtotime($slot->end_time));
+                    }
+                }
                 $mobile = $PatientDetails->mobile;
                 $phone  = $PatientDetails->phone;
             }
@@ -42,6 +55,7 @@ class ResolutionSmsHelper
             $msg = $template->message;
             $msg = str_replace('{patient_name}', $patientName, $msg);
             $msg = str_replace('{appointment_date}', $date, $msg);
+            $msg = str_replace('{appointment_time}', $time, $msg);
         }
 
         return [

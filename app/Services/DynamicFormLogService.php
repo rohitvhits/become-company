@@ -12,6 +12,10 @@ class DynamicFormLogService
         $id = null;
         if($auth){
             $id = $auth->id;
+        }else{
+            if(isset($fieldsArr['created_by'])){
+                $id = $fieldsArr['created_by'];
+            }
         }
 		$insertData  = array(
 			    'type' => $fieldsArr['type'],

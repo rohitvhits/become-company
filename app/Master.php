@@ -297,4 +297,19 @@ class Master extends Model
 	public static function getMdoSourceList(){
 		return Master::where('del_flag', 'N')->where('master_type_fk', 35)->pluck('name','id');
 	}
+
+	public static function getServiceRequestNewApi($id,$check_disable="")
+	{
+		$query = Master::where('del_flag', 'N');
+		$query->where('types', $id);
+		$query->where('master_type_fk', 11)->whereRaw('(public_id IS NULL OR public_id !="1")');
+		$query->where('is_disable',1)->where('enabled_nybest_user',0);
+		return $query->get();
+	}
+
+	/***********************Api v2 user */
+	public static function  getAllDataByMasterTypeFkV2($serviceId)
+	{
+		return Master::whereIn('master_type_fk', $serviceId)->where('del_flag', 'N')->get();
+	}
 }

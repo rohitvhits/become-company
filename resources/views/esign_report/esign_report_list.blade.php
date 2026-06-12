@@ -8,8 +8,21 @@
 <link rel="stylesheet" type="text/css" href="{{ asset('/css/daterangepicker.css') }}" />
 <link rel="stylesheet" href="<?php echo URL::to('/'); ?>/assets/jquery-confirmation/css/jquery-confirm.min.css">
 <link rel="stylesheet" href="{{ asset('/assets/css/global.css')}}">
-
+<link rel="stylesheet" href="{{ asset('css/jquery.fancybox.min.css')}}" />
 <style>
+    .table-responsive {
+        overflow: visible !important;
+    }
+    .action-dropdown {
+        position: relative;
+    }
+    .dropdown-menu {
+        right: 0;
+        left: auto;
+    }
+    .table-container {
+        min-height: 200px;
+    }
     .error {
         color: red;
     }
@@ -149,6 +162,19 @@
     .radius-50 {
         border-radius: 50px;
     }
+
+     .badge-outline-success{
+        color:#3bb001 !important;
+    }
+
+     .fancybox-slide--iframe .fancybox-content {
+      
+        height: 800px;
+        max-width: 100%;
+        max-height: 100%;
+        margin: 0;
+        background: #191919;
+    }
 </style>
 <div class="main-panel main-page-box">
     <div class="content-wrapper content-wrapper-box">
@@ -156,7 +182,7 @@
             <h5 class="mb-0 font-weight-bold">Esign Report List</h5>
             <div class="page-rightbtns cust-page-rightbtns">
                 <div>
-                  
+                    <a href="javascript:void(0)" class="btn btn-success" id="bulkSendEsignReportBtn" style="display:none;color:#fff;" onclick="openBulkSendEsignReportModal()"><i class="mdi mdi-send"></i> Bulk Send</a>
                     <a href="javascript:void(0)" id="filter-btn" class="btn cust-right-btn" style="background-color: #00879E;color:#fff;"><i class="mdi mdi-filter-outline"></i>Filter <span class="active-filter"></span></a>
                 </div>
             </div>
@@ -249,18 +275,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
-                                    <div class="form-group cust-select-box">
-                                        <div class="row">
-                                            <div class="col-sm-12">
-                                                <label for="sender_name">Sender</label>
-                                                <input type="text" name="sender_name" class="form-control" id="sender_name" placeholder="Enter Sender Name">
-                                                <input type="hidden" name="sender_name_id" id="sender_name_id">
-                                                <input type="hidden" name="senderName" id="senderName">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                
                                 <div class="col-md-3">
                                     <div class="form-group cust-select-box">
                                         <div class="row">
@@ -293,16 +308,16 @@
                                         </div>
                                     </div>
                                 </div>
+                                
                                 <div class="col-md-3">
                                     <div class="form-group cust-select-box">
                                         <div class="row">
                                             <div class="col-sm-12">
-                                                <label for="location_id">Location</label>
-                                                <select class="form-control border-class" name="location_id" id="location_id">
-                                                    <option value="">Location</option>
-                                                    @foreach($location_list as $loc)
-                                                        <option @if(isset($search_param['location_id']) && !empty($search_param['location_id']) && $search_param['location_id'] == $loc->id ) @php echo "selected='selected'" @endphp @endif value="{{ $loc->id}}">{{ $loc->location_name}}</option>
-                                                    @endforeach
+                                                <label for="location_id">Template Type</label>
+                                                <select class="form-control border-class" name="template_type" id="template_type">
+                                                    <option value="">Template Type</option>
+                                                    <option value="location">Location</option>
+                                                    <option value="telehealth">Telehealth</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -342,21 +357,24 @@
                         <table id="" class="table table-bordered ">
                             <thead>
                                 <tr>
-                                    <th>#
-                                    </th>
+                                    {{--<th><input type="checkbox" disabled></th>--}}
+                                    <th>#</th>
                                     <th>Agency Name</th>
                                     <th>Patient Name</th>
+                                    <th>Type</th>
                                     <th>Template Name</th>
+                                    <th>Template Type</th>
                                     <th>Status</th>
+                                    <th>Signers</th>
                                     <th>Sender</th>
-                                    <th>Completed Date</th>
+                                    <th>Review By</th>
                                     <th>Created Date/Created By</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody class="shimmer-loader">
                                 <tr>
-                                    <td colspan="10"></td>
+                                    <td colspan="14"></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -369,99 +387,97 @@
     </div>
 
     @include('esign_report.esign_sms_modal')
+    @include('esign_report.esign_bulk_sms_modal')
     @include('esign_report.esign_report_move_document')
     @include('patient._partial.esign.esign_history')
+    @include('patient._partial.esign.esign_log_modal')
+    @include('patient._partial.esign.new_view_esign_log_modal')
+    @include('patient._partial.esign.send_signer_request_modal_new')
+    @include('patient._partial.esign.esign_sms_modal_new')
 
-    <div class="modal fade" id="sendRequest" tabindex="-1" aria-labelledby="exampleModalLabel-2"
-        aria-hidden="true" style="display: none;">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel-2">Send Request Signer</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">×</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div id="snedId"></div>
-                </div>
-                <div class="modal-footer">
 
-                    <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
-                </div>
-
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="sendSMSEsign" aria-modal="true" style="padding-right: 17px; display: none;">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title">Send Email Esign</h4>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">×</span>
-                </button>
-            </div>
-            <form action="" id="sms_esign" ecntype="mulitpart/form-data">
-                <div class="modal-body">
-                    <input type="hidden" name="groupId" id="main_caregiver_esign_id">
-                    <input type="hidden" name="document_send_type" id="document_send_type_id">
-                    <div class="form-group">
-                        <label for="email">Email</label><span class="error">*</span>
-                        <input type="text" name="email" class="form-control" id="email"
-                            value="">
-                        <span class="error" id="email_error"></span>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="mobile">Mobile</label><span class="error">*</span>
-                        <input type="text" name="mobile" class="form-control" id="mobile_no_id_caregiver"
-                            value="">
-                        <span class="error" id="mobile_no_id_caregiver_error"></span>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary pull-right"
-                        onclick="getSendSMSSubmitEsignReport()">Send</button>
-                </div>
-        </div>
-        </form>
-        <!-- /.modal-content -->
-    </div>
-    <!-- /.modal-dialog -->
-</div>
 <div class="row" id="blank_div" style='margin-top: 30px;'>
        
     </div>
     @include('include/footer')
-@include('patient._partial.esign.esign_history')
+    @include('patient._partial.esign.esign_history')
     <script>
-        var _ESIGN_REPORT_LIST = "{{ url('esign-report-ajax-list') }}";
+        var _ESIGN_REPORT_LIST = "{{ url('esign/esign-report/ajax-list') }}";
         var _CSRF_TOKEN = '{{ csrf_token() }}';
-        var _ESIGN_REPORT_EXPORT_URL = "{{ url('esign-report-export') }}";
+        var _ESIGN_REPORT_EXPORT_URL = "{{ url('esign/esign-report/esign-report-export') }}";
         var _DATE_TIME = "{{ date('m/d/Y') }}";
         var urlToken = "{{ url('search-nybest-patient') }}";
-        var urlUserToken = "{{ url('search-nybest-all-user') }}";
+        var urlUserToken = "{{ url('esign/esign-report/search-nybest-all-user') }}";
         var _SMS_EMAIL_ESIGN_TEMPLATE = "{{ url('esign/patient-send-sms-esign') }}";
+        var _BULK_SMS_EMAIL_ESIGN = "{{ url('esign/esign-report/esign-bulk-send-sms') }}";
         var _DELETE_ESIGN_TEMPLATE = "{{ url('esign/patient-docusign-delete') }}";
         var _GET_ALLOCATED_SIGNER = "{{ url('esign/allowcate-signer-request') }}";
         var _PATIENT_SERVICES = "{{ url('ajax-service')}}";
         var _PATIENT_REQUEST_SERVICES = "{{ url('ajax-request-service')}}";
         var _PATIENT_REQUESTED_BY_ID_SERVICES = "{{ url('ajax-patient-requested-service')}}";
-        var _ESIGN_MOVE_DOCUMENT_STORE = "{{ url('esign-move-document') }}";
+        var _ESIGN_MOVE_DOCUMENT_STORE = "{{ url('esign/esign-move-document') }}";
         var _BASE_URL  = "{{ url('/')}}";
         var _ESIGN_HISTROY  = "{{ url('esign/esign-history')}}";
+        var _BULK_SEND_SMS_URL = "{{ url('esign/esign-report/bulk-send-sms') }}";
+        let _EMAIL = '';
+        let _MOBILE = '';
+        var _GENERATE_QR_CODE_LINK = '{{ url("esign/get-qr-code-link/") }}';
+        let _RECORD_TYPE = "";
+        let _AGENCYID = "";
+        let _UNDO_STATUS_URL = "{{ url('esign/pdf/undo-status')}}";
+        let _MODULE_TYPE_ESIGN = "esign-report";
+        let _SEARCH_NYBEST_USER ="{{ url('search-nybest-user')}}";
+        var _SEARCH_APPROVE_PATIENT_USER ="{{ url('get-approved-user-doc')}}";
+
+        function getSignerNewData(groupId,rowId,patientId,email,mobile){
+            _EMAIL = email;
+            _MOBILE = mobile;
+            getSignerNew(groupId,rowId,patientId)
+        }
+
+        $(document).on('click', '.move-to-document', function () {
+            let type = $(this).data('patient-type');
+            let agencyId = $(this).data('agency-id');
+            let intakeId = $(this).data('intake-id');
+            let templateId = $(this).data('template-id');
+           
+            _RECORD_TYPE = type;
+            _AGENCYID = agencyId;
+          
+            viewServicesEsign();
+            requestsServices(intakeId);
+            showDocumentApproval();
+            setTimeout(() => {
+                  $(":input").inputmask();
+                  $('#template_id').val(templateId);
+                  $('#move_doc_record_id').val(intakeId)
+            }, 200);
+        });
+       
+
+        var _LOG_URL ="{{ url('esign/get-log-details')}}";
+        var _COMMON_ESIGN_VIEW_LOG = "{{ url('esign/view-esign-log')}}";
+        var _COMMON_ESIGN_RESPONSE_VIEW_LOG = "{{ url('esign/view-esign-response-log')}}";
+        var _GENERATE_PATIENT_ESIGN_LINK = "{{ url('esign/generate-patient-esign-link')}}";
+        var _UNDO_ESIGN_DATA = "{{ url('esign/undo-esign-data')}}";
+        let userNewId = "";
+        function getSendSMSByBulk(groupId,patientId){
+            userNewId = patientId;
+            getSendSMSNew1(groupId)
+        }
+        var type="";
     </script>
 
-    {{-- <script src="{{ asset('js/jquery_new.min.js') }}"></script> --}}
     <script src="<?php echo URL::to('/'); ?>/assets/js/jquery.tokeninput.js"></script>
-    <script src="{{ asset('assets/modulejs/esign_report/esign_report.js') }}?time={{ env('timestamp') }}"></script>
-    <script src="{{ asset('assets/modulejs/esign_module.js') }}?time={{ env('timestamp') }}"></script>
+    <script src="{{ asset('assets/modulejs/esign_report/esign_report.js') }}?time={{ time() }}"></script>
+    <script src="{{ asset('assets/modulejs/esign_module_new.js') }}?time={{ env('timestamp') }}"></script>
 
     <script src="{{ asset('assets/vendors/select2/select2.min.js') }}"></script>
     <script src="{{ asset('assets/js/select2.js') }}"></script>
     <script type="text/javascript" src="{{ asset('/assets/js/moment.min.js') }}"></script>
     <script type="text/javascript" src="{{ asset('/assets/js/daterangepicker.min.js') }}"></script>
     <script src="<?= URL::to('assets/jquery-confirmation/js/jquery-confirm.min.js') ?>"></script>
+    <script type="text/javascript" src="{{ asset('assets/js/jquery.tokeninput.js')}}"></script>
+<script src="{{ asset('assets/vendors/inputmask/jquery.inputmask.bundle.js')}}"></script>
+
+<script src="{{ asset('assets/js/jquery.fancybox.min.js')}}"></script>

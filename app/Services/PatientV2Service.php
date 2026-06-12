@@ -263,4 +263,23 @@ class PatientV2Service
     {
         return Patient::where('id', $patientId)->where('deleted_flag', 'N')->whereNotNull('link_hha_patient')->first();
     }
+
+	public function getListByBulkEsign($patientIds, $type = "",$agencyIds = [])
+	{
+		$query = Patient::whereIn('patient_master.id', $patientIds)->where('patient_master.deleted_flag','N')
+			->leftJoin('agency', 'agency.id', '=', 'patient_master.agency_id')
+			->select('patient_master.id', 'patient_master.first_name', 'patient_master.last_name', 'patient_master.mobile', 'patient_master.agency_id', 'patient_master.type', 'agency.agency_name');
+
+		if (!empty($type)) {
+			$query->whereRaw('LOWER(type) = ?', [strtolower($type)]);
+		}
+
+		if(!empty($agencyIds[0])){
+			$query->whereIn('agency_id',$agencyIds);
+		}
+		
+		return $query->get()
+			->keyBy('id')
+			->toArray();
+	}
 }

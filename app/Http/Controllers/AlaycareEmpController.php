@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Services\AlayacareService;
 use App\Helpers\AlayacareHelper;
 use App\Helpers\Utility;
+use App\Helpers\Common;
 use App\Model\AlayacareEmployeeSkill;
 use Illuminate\Support\Facades\Storage;
 use Aws\S3\S3Client;
@@ -124,7 +125,7 @@ class AlaycareEmpController extends Controller
                         'gender' => $empDetailsById->gender,
                         'service_id' => implode(',', $request->service_id),
                         'diciplin' => $request->diciplin,
-                        'language' => $empDetailsById->language,
+                        'language' => Common::getOrCreateLanguageId($empDetailsById->language),
                         'county' => $empDetailsById->country,
                         'alaycare_id' => $empDetailsById->emp_id,
                         'alaycare_name' =>  $empDetailsById->first_name .' '. $empDetailsById->last_name,

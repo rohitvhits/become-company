@@ -67,6 +67,7 @@ class MasterService{
 	public function getAllName(){
 		return Master::where('master_table.del_flag','N')->pluck('name','id')->toArray();
 	}
+	
     public function getNamesByIds(array $ids)
     {
         return Master::whereIn('id', $ids)->pluck('name', 'id');

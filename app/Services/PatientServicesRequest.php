@@ -50,7 +50,7 @@ class PatientServicesRequest
 		return $update;
 	}
 
-	public  function SoftDelete($data, $where)
+	public function SoftDelete($data, $where)
 	{
 		$auth = auth()->user();
 		$data['deleted_date'] = date('Y-m-d H:i:s');
@@ -76,7 +76,7 @@ class PatientServicesRequest
 	public function getPatientService($patientId)
 	{
 
-		return PatientServiceRequest::with(['patientServiceRequestRelationShip', 'patientServiceRequestRelationShip.services:id,name'])->where('patient_id', $patientId)->get();
+		return PatientServiceRequest::with(['patientServiceRequestRelationShip', 'patientServiceRequestRelationShip.services:id,name'])->whereHas('patientServiceRequestRelationShip.services')->where('patient_id', $patientId)->get();
 	}
 
 	public function getByPatientDetails($patient_id)
@@ -212,255 +212,194 @@ class PatientServicesRequest
 	public function patientRequestedServiceList($searchQuery)
 	{
 		$agencyids = Utility::getUserWiseAgency();
-		$query = PatientServiceRequest::with('patient.agencyDetail', 'userDetails', 'patientServiceRequestRelationShip.requestService', 'patient.assignToUser', 'statusUserDetails:id,first_name,last_name')->where('del_flag', 'N');
-		$query->whereHas('patient', function ($q) {
+
+		// Optimized: Constrain eager loads to only needed columns to reduce memory & query time
+		$query = PatientServiceRequest::with([
+			'patient' => function ($q) {
+				$q->select('id', 'agency_id', 'first_name', 'middle_name', 'last_name', 'patient_code', 'mobile', 'gender', 'dob', 'type', 'diciplin', 'status', 'location_id', 'location_branch', 'appointment_date', 'appoinment_time_id', 'due_date', 'fu_date', 'follow_date', 'inservice_datetime', 'traning_due_date', 'training_status', 'assign_user_id', 'archived_at', 'record_read', 'remarks', 'appointment_mode', 'patient_sms_flag', 'deleted_flag', 'referral_type', 'hha_id', 'link_hha_caregiver', 'link_hha_patient', 'alaycare_id', 'robort_id', 'platform_type', 'language', 'transition_aid', 'medication_count', 'insurance_elg_count', 'mdo_tag_count');
+			},
+			'patient.agencyDetail:id,agency_name,delete_flag',
+			'patient.assignToUser:id,first_name,last_name',
+			'userDetails:id,first_name,last_name',
+			'patientServiceRequestRelationShip.requestService:id,name',
+			'statusUserDetails:id,first_name,last_name',
+		])->where('del_flag', 'N');
+
+		// Optimized: Use a single whereHas on 'patient' with a join for base conditions + all patient-level filters
+		// instead of many separate whereHas calls that each generate an EXISTS subquery
+		$query->whereHas('patient', function ($q) use ($searchQuery, $agencyids) {
+			// Base conditions (previously 3 separate whereHas calls)
 			$q->where('deleted_flag', 'N');
+			$q->whereNull('archived_at');
+
+			// Agency filter via joined agency table (replaces whereHas on patient.agencyDetail)
+			$q->whereExists(function ($sub) {
+				$sub->select(DB::raw(1))
+					->from('agency')
+					->whereColumn('agency.id', 'patient_master.agency_id')
+					->where('agency.delete_flag', 'N');
+			});
+
+			// Agency include/exclude filter
+			if (!empty($searchQuery['agency_fk'])) {
+				$filterType = isset($searchQuery['agency_filter_type']) ? trim($searchQuery['agency_filter_type']) : 'include';
+				if ($filterType == 'include') {
+					$q->whereIn('agency_id', $searchQuery['agency_fk']);
+				} elseif ($filterType == 'exclude') {
+					$q->whereNotIn('agency_id', $searchQuery['agency_fk']);
+				}
+			} elseif (count($agencyids) > 0) {
+				$q->whereIn('agency_id', $agencyids);
+			}
+
+			// All patient-column filters consolidated into single whereHas
+			if (!empty($searchQuery['assign_user_id'])) {
+				$q->whereIn('assign_user_id', $searchQuery['assign_user_id']);
+			}
+			if (!empty($searchQuery['training_status'])) {
+				$q->whereIn('training_status', $searchQuery['training_status']);
+			}
+			if (!empty($searchQuery['sms_status'])) {
+				$q->whereIn('patient_sms_flag', $searchQuery['sms_status']);
+			}
+			if (!empty($searchQuery['patient_code'])) {
+				$q->where('patient_code', 'like', '%' . $searchQuery['patient_code'] . '%');
+			}
+			if (!empty($searchQuery['first_name'])) {
+				$q->whereRaw('CONCAT_WS(" ", first_name, last_name) LIKE ?', ['%' . $searchQuery['first_name'] . '%']);
+			}
+			if (!empty($searchQuery['mobile'])) {
+				$q->where('mobile', 'like', '%' . $searchQuery['mobile'] . '%');
+			}
+			if (!empty($searchQuery['due_date'])) {
+				$exploderDueDate = explode('-', $searchQuery['due_date']);
+				if (count($exploderDueDate) == 2) {
+					$startDate = Carbon::parse(trim($exploderDueDate[0]))->toDateString();
+					$endDate = Carbon::parse(trim($exploderDueDate[1]))->toDateString();
+					$q->whereBetween('due_date', [$startDate, $endDate]);
+				}
+			}
+			if (!empty($searchQuery['appointment_date'])) {
+				$exploderAppDate = explode('-', $searchQuery['appointment_date']);
+				if (count($exploderAppDate) == 2) {
+					$startDate = Carbon::parse(trim($exploderAppDate[0]))->toDateString();
+					$endDate = Carbon::parse(trim($exploderAppDate[1]))->toDateString();
+					$q->whereBetween('appointment_date', [$startDate, $endDate]);
+				}
+			}
+			// Removed duplicate diciplin/type filters — only exact match needed
+			if (!empty($searchQuery['diciplin'])) {
+				$q->where('diciplin', $searchQuery['diciplin']);
+			}
+			if (!empty($searchQuery['type'])) {
+				$q->where('type', $searchQuery['type']);
+			}
+			// Removed duplicate inservice_date filter block
+			if (!empty($searchQuery['inservice_date'])) {
+				$exploderServiceDate = explode('-', $searchQuery['inservice_date']);
+				if (count($exploderServiceDate) == 2) {
+					$startDate = Carbon::parse(trim($exploderServiceDate[0]))->format('Y-m-d 00:00:00');
+					$endDate = Carbon::parse(trim($exploderServiceDate[1]))->format('Y-m-d 23:59:59');
+					$q->whereBetween('inservice_datetime', [$startDate, $endDate]);
+				}
+			}
+			if (!empty($searchQuery['follow_up_date'])) {
+				$exploderFollowDate = explode('-', $searchQuery['follow_up_date']);
+				if (count($exploderFollowDate) == 2) {
+					$startDate = Carbon::parse(trim($exploderFollowDate[0]))->toDateString();
+					$endDate = Carbon::parse(trim($exploderFollowDate[1]))->toDateString();
+					$q->whereBetween('follow_date', [$startDate, $endDate]);
+				}
+			}
+			// Removed duplicate traning_date filter — only date range needed
+			if (!empty($searchQuery['traning_date'])) {
+				$exploderTraningDate = explode('-', $searchQuery['traning_date']);
+				if (count($exploderTraningDate) == 2) {
+					$startDate = Carbon::parse(trim($exploderTraningDate[0]))->toDateString();
+					$endDate = Carbon::parse(trim($exploderTraningDate[1]))->toDateString();
+					$q->whereBetween('traning_due_date', [$startDate, $endDate]);
+				}
+			}
+			if (!empty($searchQuery['locationId'])) {
+				$q->whereIn('location_id', $searchQuery['locationId']);
+			}
+			if (!empty($searchQuery['transition_aid'])) {
+				$q->where('transition_aid', $searchQuery['transition_aid']);
+			}
+			if (!empty($searchQuery['language_id'])) {
+				$q->where('language', $searchQuery['language_id']);
+			}
+			if (!empty($searchQuery['medication_list'])) {
+				if ($searchQuery['medication_list'] == 'Yes') {
+					$q->where('medication_count', '>=', 1);
+				} else {
+					$q->where('medication_count', '=', 0);
+				}
+			}
+			if (!empty($searchQuery['insurance_elg'])) {
+				if ($searchQuery['insurance_elg'] == 'Yes') {
+					$q->where('insurance_elg_count', '>=', 1);
+				} else {
+					$q->where('insurance_elg_count', '=', 0);
+				}
+			}
+			if (!empty($searchQuery['mdo_tag'])) {
+				if ($searchQuery['mdo_tag'] == 'Yes') {
+					$q->where('mdo_tag_count', '>=', 1);
+				} else {
+					$q->where('mdo_tag_count', '=', 0);
+				}
+			}
 		});
+
+		// Service relationship filter (must remain separate whereHas since it's a different table)
 		$query->whereHas('patientServiceRequestRelationShip', function ($q) {
 			$q->where('service_id', '!=', '')->where('del_flag', 'N');
 		});
-		$query->whereHas('patient.agencyDetail', function ($q) {
-			$q->where('agency.delete_flag', 'N');
-		});
-		if (!empty($searchQuery['status'])) {
-			$query = $query->whereIn('status', $searchQuery['status']);
-		}
 
-		if (!empty($searchQuery['agency_fk'])) {
-			if(isset($searchQuery['agency_filter_type']) && trim($searchQuery['agency_filter_type']) == 'include'){
-				$query = $query->whereHas('patient', function ($q) use ($searchQuery) {
-					$q->whereIn('agency_id', $searchQuery['agency_fk']);
-				});
-			}else if(isset($searchQuery['agency_filter_type']) && trim($searchQuery['agency_filter_type']) == 'exclude'){
-				$query = $query->whereHas('patient', function ($q) use ($searchQuery) {
-					$q->whereNotIn('agency_id', $searchQuery['agency_fk']);
-				});
-			}
-			
-		} else {
-			if (count($agencyids) > 0) {
-				$query = $query->whereHas('patient', function ($q) use ($agencyids) {
-					$q->whereIn('agency_id', $agencyids);
-				});
-			}
-		}
 		if (!empty($searchQuery['service_id'])) {
-			if(isset($searchQuery['service_filter_type']) && trim($searchQuery['service_filter_type']) == 'include'){
-				$query = $query->whereHas('patientServiceRequestRelationShip', function ($q) use ($searchQuery) {
+			$filterType = isset($searchQuery['service_filter_type']) ? trim($searchQuery['service_filter_type']) : 'include';
+			if ($filterType == 'include') {
+				$query->whereHas('patientServiceRequestRelationShip', function ($q) use ($searchQuery) {
 					$q->whereIn('service_id', $searchQuery['service_id']);
 				});
-			}elseif(isset($searchQuery['service_filter_type']) && trim($searchQuery['service_filter_type']) == 'exclude'){
+			} elseif ($filterType == 'exclude') {
 				$query->whereDoesntHave('patientServiceRequestRelationShip', function ($q) use ($searchQuery) {
-				$q->whereIn('service_id', $searchQuery['service_id']);
-			});
+					$q->whereIn('service_id', $searchQuery['service_id']);
+				});
 			}
 		}
-		if (!empty($searchQuery['assign_user_id'])) {
-			$query = $query->whereHas('patient', function ($q) use ($searchQuery) {
-				$q->whereIn('assign_user_id', $searchQuery['assign_user_id']);
-			});
-		}
-		if (!empty($searchQuery['training_status'])) {
-			$query = $query->whereHas('patient', function ($q) use ($searchQuery) {
-				$q->whereIn('training_status', $searchQuery['training_status']);
-			});
+
+		// Filters on patient_service_requests table columns (no subquery needed)
+		if (!empty($searchQuery['status'])) {
+			$query->whereIn('status', $searchQuery['status']);
 		}
 		if (!empty($searchQuery['created_by_ny_id'])) {
-			$query = $query->where('created_by', $searchQuery['created_by_ny_id']);
-		}
-		if (!empty($searchQuery['sms_status'])) {
-			$query = $query->whereHas('patient', function ($q) use ($searchQuery) {
-				$q->whereIn('patient_sms_flag', $searchQuery['sms_status']);
-			});
-		}
-		if (!empty($searchQuery['patient_code'])) {
-			$query = $query->whereHas('patient', function ($q) use ($searchQuery) {
-				$q->where('patient_code', 'like', '%' . $searchQuery['patient_code'] . '%');
-			});
-		}
-		if (!empty($searchQuery['first_name'])) {
-			$query = $query->whereHas('patient', function ($q) use ($searchQuery) {
-				$q->whereRaw('CONCAT_WS(" ", first_name, last_name) LIKE ?', ['%' . $searchQuery['first_name'] . '%']);
-			});
-		}
-		if (!empty($searchQuery['mobile'])) {
-			$query = $query = $query->whereHas('patient', function ($q) use ($searchQuery) {
-				$q->where('mobile', 'like', '%' . $searchQuery['mobile'] . '%');
-			});
-		}
-		if (!empty($searchQuery['due_date'])) {
-			$exploderDueDate = explode('-', $searchQuery['due_date']);
-			if (count($exploderDueDate) == 2) {
-				$startDate = Carbon::parse(trim($exploderDueDate[0]))->toDateString();
-				$endDate = Carbon::parse(trim($exploderDueDate[1]))->toDateString();
-
-				$query = $query->whereHas('patient', function ($q) use ($startDate, $endDate) {
-					$q->whereBetween('due_date', [$startDate, $endDate]);
-				});
-			}
-		}
-		if (!empty($searchQuery['appointment_date'])) {
-			$exploderAppDate = explode('-', $searchQuery['appointment_date']);
-			if (count($exploderAppDate) == 2) {
-				$startDate = Carbon::parse(trim($exploderAppDate[0]))->toDateString();
-				$endDate = Carbon::parse(trim($exploderAppDate[1]))->toDateString();
-
-				$query = $query->whereHas('patient', function ($q) use ($startDate, $endDate) {
-					$q->whereBetween('appointment_date', [$startDate, $endDate]);
-				});
-			}
-		}
-		if (!empty($searchQuery['diciplin'])) {
-			$query = $query->whereHas('patient', function ($q) use ($searchQuery) {
-				$q->where('diciplin', 'like', '%' . $searchQuery['diciplin'] . '%');
-			});
-		}
-		if (!empty($searchQuery['type'])) {
-			$query = $query->whereHas('patient', function ($q) use ($searchQuery) {
-				$q->where('type', 'like', '%' . $searchQuery['type'] . '%');
-			});
-		}
-		if (!empty($searchQuery['inservice_date'])) {
-			$exploderServiceDate = explode('-', $searchQuery['inservice_date']);
-			if (count($exploderServiceDate) == 2) {
-				$startDate = Carbon::parse(trim($exploderServiceDate[0]))->format('Y-m-d 00:00:00');
-				$endDate = Carbon::parse(trim($exploderServiceDate[1]))->format('Y-m-d 23:59:59');
-				$query = $query->whereHas('patient', function ($q) use ($startDate, $endDate) {
-					$q->whereBetween('inservice_datetime', [$startDate, $endDate]);
-				});
-			}
-		}
-		if (!empty($searchQuery['inservice_date'])) {
-			$exploderServiceDate = explode('-', $searchQuery['inservice_date']);
-			if (count($exploderServiceDate) == 2) {
-				$startDate = Carbon::parse(trim($exploderServiceDate[0]))->format('Y-m-d 00:00:00');
-				$endDate = Carbon::parse(trim($exploderServiceDate[1]))->format('Y-m-d 23:59:59');
-				$query = $query->whereHas('patient', function ($q) use ($startDate, $endDate) {
-					$q->whereBetween('inservice_datetime', [$startDate, $endDate]);
-				});
-			}
+			$query->where('created_by', $searchQuery['created_by_ny_id']);
 		}
 		if (!empty($searchQuery['completed_date'])) {
 			$exploderCompleteDate = explode('-', $searchQuery['completed_date']);
 			if (count($exploderCompleteDate) == 2) {
 				$startDate = Carbon::parse(trim($exploderCompleteDate[0]))->format('Y-m-d 00:00:00');
 				$endDate = Carbon::parse(trim($exploderCompleteDate[1]))->format('Y-m-d 23:59:59');
-				$query = $query->whereBetween('completed_date', [$startDate, $endDate]);
+				$query->whereBetween('completed_date', [$startDate, $endDate]);
 			}
 		}
-		if (!empty($searchQuery['follow_up_date'])) {
-			$exploderFollowDate = explode('-', $searchQuery['follow_up_date']);
-			if (count($exploderFollowDate) == 2) {
-				$startDate = Carbon::parse(trim($exploderFollowDate[0]))->toDateString();
-				$endDate = Carbon::parse(trim($exploderFollowDate[1]))->toDateString();
-
-				$query = $query->whereHas('patient', function ($q) use ($startDate, $endDate) {
-					$q->whereBetween('follow_date', [$startDate, $endDate]);
-				});
-			}
-		}
-		if (!empty($searchQuery['traning_date'])) {
-			$exploderTraningDate = explode('-', $searchQuery['traning_date']);
-			if (count($exploderTraningDate) == 2) {
-				$startDate = Carbon::parse(trim($exploderTraningDate[0]))->toDateString();
-				$endDate = Carbon::parse(trim($exploderTraningDate[1]))->toDateString();
-
-				$query = $query->whereHas('patient', function ($q) use ($startDate, $endDate) {
-					$q->whereBetween('traning_due_date', [$startDate, $endDate]);
-				});
-			}
-		}
-		if (!empty($searchQuery['diciplin'])) {
-			$query = $query->whereHas('patient', function ($q) use ($searchQuery) {
-				$q->where('diciplin', $searchQuery['diciplin']);
-			});
-		}
-		if (!empty($searchQuery['type'])) {
-			$query = $query->whereHas('patient', function ($q) use ($searchQuery) {
-				$q->where('type', $searchQuery['type']);
-			});
-		}
-		if (!empty($searchQuery['traning_date'])) {
-			$query = $query->whereHas('patient', function ($q) use ($searchQuery) {
-				$q->where('traning_due_date', 'like', '%' . $searchQuery['traning_date'] . '%');
-			});
-		}
-
 		if (!empty($searchQuery['created_date'])) {
 			$exploderCreateDate = explode('-', $searchQuery['created_date']);
-			// echo '<pre>'; print_r(count($exploderCreateDate)); exit;
 			if (count($exploderCreateDate) == 2) {
 				$startDate = Carbon::parse(trim($exploderCreateDate[0]))->format('Y-m-d 00:00:00');
 				$endDate = Carbon::parse(trim($exploderCreateDate[1]))->format('Y-m-d 23:59:59');
-
-				$query = $query->whereBetween('created_at', [$startDate, $endDate]);
+				$query->whereBetween('created_at', [$startDate, $endDate]);
 			}
 		}
-
-		if (!empty($searchQuery['locationId'])) {
-			$query = $query = $query->whereHas('patient', function ($q) use ($searchQuery) {
-				$q->whereIn('location_id', $searchQuery['locationId']);
-			});
-		}
-
-		if (!empty($searchQuery['transition_aid'])) {
-			$query = $query->whereHas('patient', function ($q) use ($searchQuery) {
-				$q->where('transition_aid', $searchQuery['transition_aid']);
-			});
-		}
-
-		if (!empty($searchQuery['language_id'])) {
-			$query = $query->whereHas('patient', function ($q) use ($searchQuery) {
-				$q->where('language', $searchQuery['language_id']);
-			});
-		}
-
-		$query = $query = $query->whereHas('patient', function ($q) {
-			$q->where('id', '!=', NULL);
-			$q->where('archived_at', '=', NULL);
-		});
-
 		if (!empty($searchQuery['last_status_update'])) {
 			$explode = explode('-', $searchQuery['last_status_update']);
-			$query->whereDate('last_status_update', '>=', date('Y-m-d', strtotime($explode[0])))->whereDate('last_status_update', '<=', date('Y-m-d', strtotime($explode[1])));
+			$query->whereDate('last_status_update', '>=', date('Y-m-d', strtotime($explode[0])))
+				->whereDate('last_status_update', '<=', date('Y-m-d', strtotime($explode[1])));
 		}
-
 		if (!empty($searchQuery['last_status_updated_by'])) {
-
 			$query->where('last_status_update_by', $searchQuery['last_status_updated_by']);
-		}
-
-		if (!empty($searchQuery['medication_list'])) {
-			$medication_list = $searchQuery['medication_list'];
-			$query = $query->whereHas('patient', function ($q) use ($medication_list) {
-				if ($medication_list == 'Yes') {
-					$q->where('medication_count','>=',1);
-				} else {
-					$q->where('medication_count','=',0);
-				}
-			});
-		}
-
-		if (!empty($searchQuery['insurance_elg'])) {
-			$insurance_elg = $searchQuery['insurance_elg'];
-			$query = $query->whereHas('patient', function ($q) use ($insurance_elg) {
-				if ($insurance_elg == 'Yes') {
-					$q->where('insurance_elg_count','>=',1);
-				} else {
-					$q->where('insurance_elg_count','=',0);
-				}
-			});
-		}
-
-		if (!empty($searchQuery['mdo_tag'])) {
-			$mdo_tag = $searchQuery['mdo_tag'];
-			$query = $query->whereHas('patient', function ($q) use ($mdo_tag) {
-				if ($mdo_tag == 'Yes') {
-					$q->where('mdo_tag_count','>=',1);
-				} else {
-					$q->where('mdo_tag_count','=',0);
-				}
-			});
 		}
 
 		return $query->orderBy('created_at', 'desc')->paginate(50);

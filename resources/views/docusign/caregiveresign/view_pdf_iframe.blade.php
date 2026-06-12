@@ -29,8 +29,7 @@
 <link href="<?= URL::to('assets/css/jquery-confirm.min.css') ?>" rel="stylesheet" />
 <link rel="stylesheet" href="<?php echo URL::to('/'); ?>/assets/vendors/fullcalendar/fullcalendar.min.css">
 <link rel="stylesheet" href="<?php echo URL::to('/'); ?>/assets/vendors/datatables.net-bs4/dataTables.bootstrap4.css">
-<link href="<?php echo URL::to('/'); ?>/assetsd/css/vertical-layout-light/jquery.timepicker.css" rel="stylesheet"
-    type="text/css">
+
 <link href="<?php echo URL::to('/'); ?>/assets/css/toastr/toastr.min.css" rel="stylesheet" type="text/css" />
 <link rel="stylesheet" href="<?php echo URL::to('/'); ?>/assets/vendors/select2/select2.min.css">
 <link rel="stylesheet" href="<?php echo URL::to('/'); ?>/assets/vendors/select2-bootstrap-theme/select2-bootstrap.min.css">
@@ -45,7 +44,7 @@
 
     .iframe-container iframe {
         width: 100%;
-        height: 600px;
+        height: 600px !important;
         border: none;
     }
 
@@ -95,6 +94,7 @@
         padding-right: 35px;
         background-color: #d5ecff;
     }
+    
 </style>
 
 <div class="container-fluid">
@@ -203,7 +203,7 @@
 <!-- Custom js for this page-->
 <script src="<?= URL::to('assets/js/dashboard.js') ?>"></script>
 <!-- End custom js for this page-->
-<script src="{{ asset('assets/js/jquery_new.min.js') }}"></script>
+
 <script src="<?= URL::to('assets/js/sweetalert2.min.js') ?>"></script>
 <script type="text/javascript" src="{{ asset('assets/js/jquery.tokeninput.js') }}"></script>
 <script src="{{ asset('assets/vendors/moment/moment.min.js') }}"></script>
@@ -223,6 +223,7 @@
     var _BASE_URL = "{{ url('/')}}";
 </script>
 <script>
+    var redirection_module_type = '{{ $redirection_module_type}}';
     function saveFormBtn() {
         var temp = 0;
 
@@ -256,12 +257,19 @@
             processData: false,
             contentType: false,
             success: function(response) {
-                toastr.success(response.error_msg);
-                window.parent.esignResponseNew1();
+               
+                setTimeout(() => {
+                    toastr.success(response.error_msg);
+                }, 200);
+                if(redirection_module_type !=""){
+                    window.parent.loadEsignReportList(1);
+                }else{
+                    window.parent.esignResponseNew1();
+                }
                 window.parent.$.fancybox.close();
             },
             error: function(xhr, status, error) {
-                showErrorAndLoginRedirection(xhr);
+                showErrorAndLoginRedirection(xhr)
             }
         });
     }
@@ -323,6 +331,5 @@
             }
         });
     }
-
 
 </script>

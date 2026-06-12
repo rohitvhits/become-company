@@ -21,7 +21,7 @@ class DocumentSentReport extends Model
 	protected $fillable = ['id', 'caregiver_code', 'subject', 'status', 'sender_id', 'sender_name', 'receipt_name', 'sent_on', 'created_date', 'created_by', 'templete_id', 'pdf_generate', 'document_submit_status', 'del_flag', 'type', 'latitude', 'longitude', 'mobileinfo', 'sourceFile', 'referral_id', 'main_intakeId', 'final_document', 'receipted', 'groupId', 'singstatus', 'approved_date', 'approved_by', 'mobile','agency_form_id','pdf_status','pdf_status_reason','streamlined_action','auto_notified','auto_notified_at','review_date','review_by','is_undo','is_undo_date','doctor_id','Sms','email','document_response_id','vns_id','completed_on'];
 
 	public function templateDetails(){
-        return $this->belongsTo(Template::class,'templete_id','id')->select('id','template_name','document_type','upload_document','response')->orderBy('template_name');
+        return $this->belongsTo(Template::class,'templete_id','id')->select('id','template_name','document_type','upload_document','response','template_type')->orderBy('template_name');
     }
 
     public function userDetails(){

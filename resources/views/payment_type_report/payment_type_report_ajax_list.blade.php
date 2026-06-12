@@ -105,7 +105,7 @@
                     <label class="badge badge-primary">Telehealth Appointment</label>
                     <br/>
                     {{date('m/d/Y', strtotime($row->telehealth_date_time))}}<br />
-                    {{$row->telehealth_time_slot}} <br/>
+                    {{$row->telehealth_time_frame ?: $row->telehealth_time_slot}} <br/>
                 @endif
               @endif
               @if(strtolower($row->type) == 'patient')
@@ -120,7 +120,7 @@
                     <label class="badge badge-primary">Telehealth Appointment</label>
                     <br/>
                     {{date('m/d/Y', strtotime($row->telehealth_date_time))}}<br />
-                    {{$row->telehealth_time_slot}} <br/>
+                    {{$row->telehealth_time_frame ?: $row->telehealth_time_slot}} <br/>
                 @endif
               @endif
             </td>

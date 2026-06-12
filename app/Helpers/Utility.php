@@ -826,4 +826,55 @@ class Utility
 	{
 		return $date . ' 23:59:59';
 	}
+
+	public static function dateYmdHis(){
+		return date('Y-m-d H:i:s');
+	}
+	/*************************only for API v2 */
+	public static function saveResolutionLogFormsAPI($status,$ser_req_id,$patient_id,$temp_user_id = ""){
+		$user = auth()->user()??'';
+		
+		if($temp_user_id !=""){
+			$user_id =$temp_user_id;
+		}else{
+			if(empty($user)){
+				$user_id = env('API_USER_ID');
+			}else{
+				$user_id = $user->id;
+			}
+		}
+		
+		$user = User::find($user_id);
+		if($status == 'New Order Received'){
+			$team = 'MDO Team';
+		}else if($status == 'New Form Requested'){
+			$team = 'Schedule Coordinators';
+		}
+		$resData = array(
+			'patient_id' => $patient_id,
+			'team' => $team,
+			'resolution' => $status,
+			'notes' => $request->notes??'',
+			'service_request_id' => $ser_req_id,
+			'temp_user_id'=>$temp_user_id
+		);
+		ResolutionService::saveRes($resData);
+		$ipaddress = Utility::getIP();
+		$insertLog = [
+			'type' => 'Saved resolution data for services',
+			'link' => url('/save-pateint-service-requested'),
+			'module' => 'Patient Appointment',
+			'object_id' => $patient_id,
+			'message' => $user->first_name . ' ' . $user->last_name . ' has Saved Resolution data for services.',
+			'new_response' => serialize($resData),
+			'ip' => $ipaddress,
+			'created_by'=>$user_id
+		];
+		LogsService::save($insertLog);
+	}
+
+	/****Use for static date for Export csv and other files */
+	public static function convertDateStaticUseExportOtherFile(){
+		return date('m/d/Y');
+	}
 }

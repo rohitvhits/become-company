@@ -447,4 +447,9 @@ class User extends Authenticatable
 		$query = User::withTrashed()->where('id',$id)->first();
 		return $query;
 	}
+
+    /******use for API V2 */
+    public static function getDetailsByIdV2($id){
+		return User::where('id',$id)->first();
+	}
 }

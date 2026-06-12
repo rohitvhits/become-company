@@ -84,6 +84,38 @@ class TelehealthLocationScheduleEventService{
 			->get();
 	}
 
+	public function getTimeSlotsByLangDay($language, $dayOfWeek,$type)
+	{
+		return TelehealthLocationScheduleEvent::leftJoin('users', function($join) {
+				$join->on('telehealth_location_schedule_events.nurse_id', '=', 'users.id')
+					->where('users.delete_flag', '=', 'N');
+			})->leftJoin('nurse_language', function($join) {
+				$join->on('nurse_language.nurse_id', '=', 'users.id')
+					->where('nurse_language.del_flag', '=', 'N');
+			})->leftJoin('telehealth_location_schedule', function($join) {
+				$join->on('telehealth_location_schedule.id', '=', 'telehealth_location_schedule_events.schedule_id')
+					->where('telehealth_location_schedule.del_flag', '=', 'N');
+			})
+			->where([
+				'nurse_language.language_id' => $language,
+				'telehealth_location_schedule_events.day' => $dayOfWeek,
+				'telehealth_location_schedule_events.del_flag' => 'N',
+			])->where('tele_config_type',strtolower($type))
+			->select(
+				'telehealth_location_schedule_events.id',
+				'telehealth_location_schedule_events.start_time',
+				'telehealth_location_schedule_events.end_time',
+				'telehealth_location_schedule_events.del_flag',
+				'telehealth_location_schedule.tele_config_type',
+				'telehealth_location_schedule_events.schedule_id',
+				'telehealth_location_schedule_events.nurse_id'
+			)
+			// ->groupBy('telehealth_location_schedule_events.start_time', 'telehealth_location_schedule_events.end_time')
+			->orderBy('telehealth_location_schedule_events.start_time', 'asc')
+			->get();
+	}
+
+
 	public function checkOverlappingSchedule($locationId, $nurseId, $day, $startTime, $endTime, $excludeScheduleId = null)
 	{
 		$query = TelehealthLocationScheduleEvent::where([
@@ -460,6 +492,58 @@ class TelehealthLocationScheduleEventService{
 		])
 		->select('telehealth_location_schedule_events.id', 'telehealth_location_schedule_events.slot_id', 'telehealth_location_schedule_events.day', 'telehealth_location_schedule_events.start_time', 'telehealth_location_schedule_events.end_time','telehealth_location_schedule_events.del_flag')
 		->get();
+	}
+
+	/**
+	 * All slots for a given day + patient type, without any language join.
+	 * Used when language filtering is done in PHP after the fact.
+	 */
+	public function getSlotsByDayAndType(string $dayOfWeek, string $type): \Illuminate\Support\Collection
+	{
+		return TelehealthLocationScheduleEvent::leftJoin('telehealth_location_schedule', function ($join) {
+				$join->on('telehealth_location_schedule.id', '=', 'telehealth_location_schedule_events.schedule_id')
+					->where('telehealth_location_schedule.del_flag', '=', 'N');
+			})
+			->where([
+				'telehealth_location_schedule_events.day'      => $dayOfWeek,
+				'telehealth_location_schedule_events.del_flag' => 'N',
+				'tele_config_type'                             => strtolower($type),
+			])
+			->select(
+				'telehealth_location_schedule_events.id',
+				'telehealth_location_schedule_events.nurse_id',
+				'telehealth_location_schedule_events.start_time',
+				'telehealth_location_schedule_events.end_time',
+			)
+			->orderBy('telehealth_location_schedule_events.start_time')
+			->get();
+	}
+
+	/**
+	 * All slots for a given day + type that fall within [frameStart, frameEnd).
+	 * Single query — avoids per-nurse N+1 in nurse-filtering.
+	 */
+	public function getSlotsInTimeFrame(string $dayOfWeek, string $type, string $frameStart, string $frameEnd): \Illuminate\Support\Collection
+	{
+		return TelehealthLocationScheduleEvent::leftJoin('telehealth_location_schedule', function ($join) {
+				$join->on('telehealth_location_schedule.id', '=', 'telehealth_location_schedule_events.schedule_id')
+					->where('telehealth_location_schedule.del_flag', '=', 'N');
+			})
+			->where([
+				'telehealth_location_schedule_events.day'      => $dayOfWeek,
+				'telehealth_location_schedule_events.del_flag' => 'N',
+				'tele_config_type'                             => strtolower($type),
+			])
+			->whereRaw("TIME_FORMAT(telehealth_location_schedule_events.start_time, '%H:%i') >= ?", [$frameStart])
+			->whereRaw("TIME_FORMAT(telehealth_location_schedule_events.start_time, '%H:%i') <  ?", [$frameEnd])
+			->select(
+				'telehealth_location_schedule_events.id',
+				'telehealth_location_schedule_events.nurse_id',
+				'telehealth_location_schedule_events.start_time',
+				'telehealth_location_schedule_events.end_time',
+			)
+			->orderBy('telehealth_location_schedule_events.start_time')
+			->get();
 	}
 
 	public function getEventScheduleData($id){

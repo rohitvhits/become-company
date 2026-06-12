@@ -9,15 +9,21 @@
                 </button>
             </div>
 
-            <form action="{{ url('save-bulk-assign-user')}}" method="post" enctype="multipart/form-data" id="form_bulk_assign_user_id">
+            <form action="{{ url('save-bulk-assign-user')}}" method="post" enctype="multipart/form-data" id="form_bulk_assign_user_id" onsubmit="return submitBulkAssignUser();">
                 @csrf
                 <input type="hidden" id="bulk_appointments_id" name="bulk_appointments_id">
                 <div class="modal-body">
-                <label for="user_id">Assign User <span class="text-danger">*</span></label>
+                    <label for="user_id">Assign User <span class="text-danger">*</span></label>
                     <div class="form-group">
-                        
                         <input type="text" name="bulk_user_id" id="bulk_user_id" class="form-control">
                         <span id="bulk_user_id_error" class="text-danger bulk_user_id_error"></span>
+                    </div>
+                    <div class="form-group mt-2">
+                        <label for="bulk_assign_dept" class="small mb-1">Department:</label>
+                        <select class="form-control" name="bulk_assign_department" id="bulk_assign_dept">
+                            <option value="">Select Department</option>
+                        </select>
+                        <span class="error assign_department_error"></span>
                     </div>
                 </div>
                 <div class="modal-footer">

@@ -221,7 +221,7 @@ class CreatePatientController extends BaseController
 				'gender' => $request->gender,
 				'patient_code' => $request->patient_code,
 				'remarks' => $request->message,
-				'language' => $request->language,
+				'language' => Common::getOrCreateLanguageId($request->language),
 				'address1' => $request->address1,
 				'address2' => $request->address2,
 				'state' => $request->state,

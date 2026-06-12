@@ -50,6 +50,7 @@
     var _BASE_URL = "{{ url('/')}}";
     var _DELETE_ESIGN_TEMPLATE = "{{ url('esign/patient-docusign-delete') }}";
     var _SMS_EMAIL_ESIGN_TEMPLATE = "{{ url('esign/patient-send-sms-esign') }}";
+    var _BULK_SMS_EMAIL_ESIGN = "{{ url('esign/bulk-send-sms-esign') }}";
     var userNewId = "{{ $record->id }}";
     var _DOWNLOAD_URL = '{{ url("dre/")}}';
     var _SEND_DOCUMENT_MAIL = "{{ url('patient/send-document-mail') }}"
@@ -114,7 +115,8 @@
     var _DOB = "{{$record->dob}}";
     var _GENDER = "{{$record->gender}}";
     var _SERVICE = "{{$record->service}}";
-   
+    var _MOBILE = "{{$record->mobile}}";
+
     var _GET_PATIENT_WISE_SERVICES = "{{ url('patient-wise-services') }}";
     var _PATIENT_WISE_SERVICE_EMAIL_REQUEST_SAVE = "{{ url('save-service-email') }}";
     var _GET_PATIENT_TYPE_WISE_SERVICES = "{{ url('ajax-service') }}";
@@ -359,7 +361,10 @@
     var APT_ID = "{{ $record->appoinment_time_id }}";
     var SERVICE_IDS = "<?php echo json_encode(old('service_id')); ?>;";
     var APPADD = "{{ url('/patient/appointment-add') }}";
-    var TELEHEALTH_PATIENT_SCHEDULE = "{{ url('/patient/telehealth-add') }}";
+    var TELEHEALTH_PATIENT_SCHEDULE      = "{{ url('/patient/telehealth-add') }}";
+    var _GET_AVAILABLE_TIME_FRAMES       = "{{ url('/patient/get-available-time-frames') }}";
+    var _GET_FILTERED_NURSES             = "{{ url('/patient/get-filtered-nurses') }}";
+    var _GET_TELEHEALTH_SLOTS            = "{{ url('get-telehealth-slots') }}";
     var _RESOLUTION_REQUEST_SERVICE = "{{url('get-service-requested')}}";
     var SERVICE_STATUS_CHANGES = "{{url('save-pateint-service-requested')}}";
     var _TEXT_MESSAGE_IMAGES_DOWNLOAD="{{ url('dpp-text-message')}}";

@@ -14,6 +14,7 @@ use App\Helpers\ThirdPartyWebHookHelper;
 use App\Services\SendTaskHealthDocumentLogService;
 use App\Services\PatientService;
 use App\Helpers\Utility;
+use App\Helpers\Common;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 use App\Model\Patient;
@@ -1319,7 +1320,7 @@ class TaskHealthMasterController extends Controller
 			'service_id'           => implode(',', $serviceIdArray),
 			'patient_code'         => $data['patient_code']    ?? '',
 			'diciplin'             => $data['diciplin']        ?? '',
-			'language'             => $data['language']        ?? '',
+			'language'             => Common::getOrCreateLanguageId($data['language'] ?? ''),
 			'address1'             => $data['address1']        ?? '',
 			'address2'             => $data['address2']        ?? '',
 			'state'                => $data['state']           ?? '',
@@ -1429,7 +1430,7 @@ class TaskHealthMasterController extends Controller
 			'service_id'           => implode(',', $serviceIdArray),
 			'patient_code'         => $sendResponseData['patient_code']  ?? '',
 			'diciplin'             => $sendResponseData['diciplin']      ?? '',
-			'language'             => $sendResponseData['language']      ?? '',
+			'language'             => Common::getOrCreateLanguageId($sendResponseData['language'] ?? ''),
 			'address1'             => $sendResponseData['address1']      ?? '',
 			'address2'             => $sendResponseData['address2']      ?? '',
 			'state'                => $sendResponseData['state']         ?? '',

@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Http\Controllers;
-
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Http\Request;
 use App\Services\LocationMasterService;
@@ -25,28 +24,48 @@ use App\Services\DisableDateService;
 use App\Services\PatientSMSLogService;
 use App\Model\PatientTelehealthSchedule;
 use App\Services\PatientTelehealthScheduleService;
+use App\Services\SiteSettingServices;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class TelehealthLocationScheduleEventController extends BaseController
 {
 
-    protected $locationMasterService,$logService,$telehealthLocationScheduleService,$telehealthLocationScheduleEventService,$PatientService,$patientWiseServicesRequests, $patientServicesRequest, $agencyWiseSMSNotificationService,$smsService,$DocumentPatientService, $disableDateService,$patientSMSLogService,$patientTelehealthScheduleService="";
+    protected $locationMasterService;
+    protected $logService;
+    protected $telehealthLocationScheduleService;
+    protected $telehealthLocationScheduleEventService;
+    protected $patientService;
+    protected $patientWiseServicesRequests;
+    protected $patientServicesRequest;
+    protected $agencyWiseSMSNotificationService;
+    protected $smsService;
+    protected $documentPatientService;
+    protected $disableDateService;
+    protected $patientSMSLogService;
+    protected $patientTelehealthScheduleService;
+    protected $siteSettingServices;
     
-    public function __construct(LocationMasterService $locationMasterService, LogsService $logService, TelehealthLocationScheduleService $telehealthLocationScheduleService, telehealthLocationScheduleEventService $telehealthLocationScheduleEventService,PatientService $PatientService, PatientWiseServicesRequests $patientWiseServicesRequests, PatientServicesRequest $patientServicesRequest, AgencyWiseSMSNotificationService $agencyWiseSMSNotificationService, SmsService $smsService, DocumentPatientService $DocumentPatientService, DisableDateService $disableDateService,PatientSMSLogService $patientSMSLogService, PatientTelehealthScheduleService $patientTelehealthScheduleService)
+    protected const COMMON_MODULE = "Patient Appointment";
+    protected const SCHEDULE_CONFLICT = "Schedule conflict found. The nurse already has an appointment scheduled for this time slot.";
+    protected const SCHEDULE_TYPE = "Update Telehealth Schedule Appointment";
+    public function __construct(LocationMasterService $locationMasterService, LogsService $logService, TelehealthLocationScheduleService $telehealthLocationScheduleService, telehealthLocationScheduleEventService $telehealthLocationScheduleEventService,PatientService $patientService, PatientWiseServicesRequests $patientWiseServicesRequests, PatientServicesRequest $patientServicesRequest, AgencyWiseSMSNotificationService $agencyWiseSMSNotificationService, SmsService $smsService, DocumentPatientService $documentPatientService, DisableDateService $disableDateService,PatientSMSLogService $patientSMSLogService, PatientTelehealthScheduleService $patientTelehealthScheduleService, SiteSettingServices $siteSettingServices)
     {
         $this->middleware('permission:manage-telehealth-location', ['only' => ['manageTelehealthLocation']]);
         $this->locationMasterService = $locationMasterService;
         $this->logService = $logService;
         $this->telehealthLocationScheduleService = $telehealthLocationScheduleService;
         $this->telehealthLocationScheduleEventService = $telehealthLocationScheduleEventService;
-        $this->PatientService = $PatientService;
+        $this->patientService = $patientService;
         $this->patientWiseServicesRequests = $patientWiseServicesRequests;
         $this->patientServicesRequest = $patientServicesRequest;
         $this->agencyWiseSMSNotificationService = $agencyWiseSMSNotificationService;
         $this->smsService = $smsService;
-        $this->DocumentPatientService = $DocumentPatientService;
+        $this->documentPatientService = $documentPatientService;
         $this->disableDateService = $disableDateService;
         $this->patientSMSLogService = $patientSMSLogService;
         $this->patientTelehealthScheduleService = $patientTelehealthScheduleService;
+        $this->siteSettingServices = $siteSettingServices;
     }
 
     public function manageTelehealthLocation(Request $request)
@@ -122,7 +141,7 @@ class TelehealthLocationScheduleEventController extends BaseController
                 if ($existingSchedule->count() > 0) {
                     return response()->json([
                         'status' => false,
-                        'message' => 'Schedule conflict found. The nurse already has an appointment scheduled for this time slot.'
+                        'message' => self::SCHEDULE_CONFLICT
                     ]);
                 }
             }
@@ -157,8 +176,6 @@ class TelehealthLocationScheduleEventController extends BaseController
                 }
             }
             
-            
-            // $ipaddress = request()->getClientIp();
             $ipaddress = Utility::getIP();
             
             $insertLog = [
@@ -184,7 +201,6 @@ class TelehealthLocationScheduleEventController extends BaseController
         $language = $request->input('language');
         $date = $request->input('date');
         $type = $request->input('type');
-        $patient_id = $request->input('patient_id');
 
         // Get day of week from date (0 = Sunday, 1 = Monday, etc.)
         $dayOfWeek = date('l', strtotime($date));
@@ -220,21 +236,16 @@ class TelehealthLocationScheduleEventController extends BaseController
             }
         }
         // Remove duplicate slot from array
-        $uniqueEvents = array(); 
+        $uniqueEvents = array();
         foreach($timings as $key => $event){
             $key = $event->start_time;
             if(!empty($finalTimeArray)){
-                foreach ($finalTimeArray as $time => $dates) { 
-                    if($date == $dates){
-                        if (date('H:i A', strtotime($key)) < date('H:i A',strtotime($time))) {
-                            if (!isset($seen[$key])) {
-                                $seen[$key] = true;
-                                $uniqueEvents[] = $event;
-                            }
-                        }
+                foreach ($finalTimeArray as $time => $dates) {
+                    if($date == $dates && (date('H:i A', strtotime($key)) < date('H:i A',strtotime($time))) && (!isset($seen[$key]))){
+                        $seen[$key] = true;
+                        $uniqueEvents[] = $event;
                     }
                 }
-                
             }else{
                 if (!isset($seen[$key])) {
                     $seen[$key] = true;
@@ -259,7 +270,7 @@ class TelehealthLocationScheduleEventController extends BaseController
         if($request->type == 'Caregiver'){
             $appointment = $this->telehealthLocationScheduleEventService->getPatientExistingAppointment($patientId);
         }else{
-            $appointment = $this->PatientService->getPatientExistingAppointment($patientId);
+            $appointment = $this->patientService->getPatientExistingAppointment($patientId);
         }
         return response()->json([
             'status' => true,
@@ -274,7 +285,7 @@ class TelehealthLocationScheduleEventController extends BaseController
 		$patient_id = $request->input('id');
         $type = $request->input('type');
 
-        $query = $this->PatientService->getPatientDetailsId($patient_id);
+        $query = $this->patientService->getPatientDetailsId($patient_id);
         $getAgencyName = Agency::getDetailsByAgencyId($query->agency_id);
         if ($query->telehealth_key != "") {
             $unitId = $query->telehealth_key;
@@ -282,13 +293,13 @@ class TelehealthLocationScheduleEventController extends BaseController
             $unitId = uniqid();
         }
         if($type == 'Caregiver'){
-            $this->PatientService->update(
+            $this->patientService->update(
                 array(
-                        'telehealth_date_time' => date('Y-m-d', strtotime($ap_date)), 	
-                        'status' => 'booked', 
-                        'telehealth_by' => $auth['id'], 
-                        'last_status_update' => date('Y-m-d H:i:s'), 
-                        'last_status_update_by' => $auth['id'],
+                        'telehealth_date_time' => date('Y-m-d', strtotime($ap_date)),
+                        'status' => 'booked',
+                        'telehealth_by' => $auth->id,
+                        'last_status_update' => Utility::dateYmdHis(),
+                        'last_status_update_by' => $auth->id,
                         'telehealth_time_slot' => $request->telehealth_time_slot,
                         'telehealth_language' => $request->telehealth_language,
                         'telehealth_key' => $unitId
@@ -307,36 +318,38 @@ class TelehealthLocationScheduleEventController extends BaseController
                         try {
                             $this->smsService->AgencyWiseSmsDynamic($patient_id, $query->mobile, $message);
                         } catch (\Throwable $th) {
-                                throw $th;
+                            Log::error('SMS sending failed');
                         }
-                        $this->PatientService->update(array('telehealth_key' => $unitId, 'patient_sms_flag' => 1), array('id' => $patient_id));
+                        $this->patientService->update(array('telehealth_key' => $unitId, 'patient_sms_flag' => 1), array('id' => $patient_id));
                         $this->patientSMSLogService->save(array('patient_id' => $patient_id, 'mobile_no' => $query->mobile, 'message' => $message, 'key' => $unitId));
                 }
             }
             $ipaddress = Utility::getIP();
             $insertLog = [
-                'type' => 'Update Telehealth Schedule Appointment',
+                'type' => self::SCHEDULE_TYPE,
                 'link' => url('/patient/view') . '/' . $request->input('id'),
-                'module' => 'Patient Appointment',
+                'module' => self::COMMON_MODULE,
                 'object_id' =>  $request->input('id'),
                 'message' => $auth->first_name . ' ' . $auth->last_name . ' has Appointment Schedule',
-                'new_response' => serialize(array('appointment_date' => date('Y-m-d H:i:s', strtotime($ap_date)), 'telehealth_date_time' => date('Y-m-d', strtotime($ap_date)), 'status' => 'booked', 'telehealth_by' => $auth['id'], 'last_status_update' => date('Y-m-d H:i:s'), 'last_status_update_by' => $auth['id'],'telehealth_time_slot' => $request->telehealth_time_slot,'telehealth_language' => $request->telehealth_language,)),
+                'new_response' => serialize(array('appointment_date' => date('Y-m-d H:i:s', strtotime($ap_date)), 'telehealth_date_time' => date('Y-m-d', strtotime($ap_date)), 'status' => 'booked', 'telehealth_by' => $auth->id, 'last_status_update' => Utility::dateYmdHis(), 'last_status_update_by' => $auth->id,'telehealth_time_slot' => $request->telehealth_time_slot,'telehealth_language' => $request->telehealth_language,)),
                 'ip' => $ipaddress,
             ];
             LogsService::save($insertLog);
         }elseif($type == 'Patient'){
             $ap_date = $request->input('patient_telehealth_date_id');
             $is_from_chart = $request->input('is_from_chart')??0;
-            $this->PatientService->update(
+            $this->patientService->update(
                 array(
-                        'telehealth_date_time' => date('Y-m-d', strtotime($ap_date)),
-                        'status' => 'booked',
-                        'telehealth_by' => $auth['id'],
-                        'last_status_update' => date('Y-m-d H:i:s'),
-                        'last_status_update_by' => $auth['id'],
-                        'telehealth_time_slot' => $request->patient_telehealth_time_slot,
-                        'telehealth_key' => $unitId,
-                        'telehealth_nurse' => $request->telehealth_nurse,
+                        'telehealth_date_time'  => date('Y-m-d', strtotime($ap_date)),
+                        'status'                => 'booked',
+                        'telehealth_by'         => $auth->id,
+                        'last_status_update'    => Utility::dateYmdHis(),
+                        'last_status_update_by' => $auth->id,
+                        'telehealth_time_slot'  => $request->patient_telehealth_time_slot,
+                        'telehealth_time_frame' => $request->selected_time_frame,
+                        'telehealth_language'   => $request->telehealth_language ?: null,
+                        'telehealth_key'        => $unitId,
+                        'telehealth_nurse'      => $request->telehealth_nurse,
                     ), array('id' => $patient_id)
                 );
             if($is_from_chart == 0){
@@ -344,6 +357,14 @@ class TelehealthLocationScheduleEventController extends BaseController
             }
             $this->saveToAppointmentData($request,$ap_date,$auth,$unitId,$type);
             $getAppointSchedule = $this->telehealthLocationScheduleEventService->getTelehalthScheduledata($request->patient_telehealth_time_slot);
+
+            // Use the selected time frame for SMS instead of the actual slot times
+            if ($request->selected_time_frame && $getAppointSchedule) {
+                [$frameStart, $frameEnd] = explode('-', $request->selected_time_frame);
+                $getAppointSchedule->start_time = $frameStart . ':00';
+                $getAppointSchedule->end_time   = $frameEnd   . ':00';
+            }
+
             $getServiceArray = $this->patientWiseServicesRequests->getExistingPatientServices($patient_id);
             // Check services are present into the associate agency id
             $isSendSMS = Common::checkTeleAgencyService($getServiceArray,$query->agency_id);
@@ -353,21 +374,27 @@ class TelehealthLocationScheduleEventController extends BaseController
                     try {
                         $this->smsService->AgencyWiseSmsDynamic($patient_id, $query->mobile, $message);
                     } catch (\Throwable $th) {
-                            //throw $th;
+                        Log::error('SMS sending failed');
                     }
-                    $this->PatientService->update(array('telehealth_key' => $unitId, 'patient_sms_flag' => 1), array('id' => $patient_id));
+                    $patientUpdateData = ['telehealth_key' => $unitId,'patient_sms_flag' => 1];
                     $this->patientSMSLogService->save(array('patient_id' => $patient_id, 'mobile_no' => $query->mobile, 'message' => $message, 'key' => $unitId));
                 }
             }
-            // exit;
+            if (!empty($request->selected_language)) {
+                $patientUpdateData['language'] = $request->selected_language;
+            }
+            if(isset($patientUpdateData) && !empty($patientUpdateData)){
+                $this->patientService->update($patientUpdateData, array('id' => $patient_id));
+            }
+
             $ipaddress = Utility::getIP();
             $insertLog = [
-                'type' => 'Update Telehealth Schedule Appointment',
+                'type' => self::SCHEDULE_TYPE,
                 'link' => url('/patient/view') . '/' . $request->input('id'),
-                'module' => 'Patient Appointment',
+                'module' => self::COMMON_MODULE,
                 'object_id' =>  $request->input('id'),
                 'message' => $auth->first_name . ' ' . $auth->last_name . ' has Appointment Schedule',
-                'new_response' => serialize(array('appointment_date' => date('Y-m-d H:i:s', strtotime($ap_date)), 'telehealth_date_time' => date('Y-m-d', strtotime($ap_date)), 'status' => 'booked', 'telehealth_by' => $auth['id'], 'last_status_update' => date('Y-m-d H:i:s'), 'last_status_update_by' => $auth['id'],'telehealth_time_slot' => $request->patient_telehealth_time_slot,'telehealth_language' => $request->telehealth_language,)),
+                'new_response' => serialize(array('appointment_date' => date('Y-m-d H:i:s', strtotime($ap_date)), 'telehealth_date_time' => date('Y-m-d', strtotime($ap_date)), 'status' => 'booked', 'telehealth_by' => $auth->id, 'last_status_update' => Utility::dateYmdHis(), 'last_status_update_by' => $auth->id,'telehealth_time_slot' => $request->patient_telehealth_time_slot,'telehealth_language' => $request->telehealth_language,'telehealth_time_frame' => $request->selected_time_frame)),
                 'ip' => $ipaddress,
             ];
             LogsService::save($insertLog);
@@ -381,13 +408,14 @@ class TelehealthLocationScheduleEventController extends BaseController
                 'msg' => ''
             );
             Common::insertAgencyNotificationsOfUser($agencyNotifyData);
-        } catch (\Throwable $th) {}
+        } catch (\Throwable $th) {
+            Log::error('Notification sending failed');
+        }
 		return response()->json(['error_msg' => "Telehealth appointment successfully added", 'status' => 1, 'data' => array()], 200);
 	}
 
     public function saveTeleHealthServiceRequest($id, $status)
 	{
-		$auth = auth()->user();
 		$checkServices = $this->patientServicesRequest->getPatientService($id);
 
 		if (count($checkServices) > 0) {
@@ -400,12 +428,12 @@ class TelehealthLocationScheduleEventController extends BaseController
 
 			$updateStatus = array(
 				'status' => $statusName,
-				'last_status_update' => date('Y-m-d H:i:s')
+				'last_status_update' => Utility::dateYmdHis()
 			);
 			$this->patientServicesRequest->update($updateStatus, array('id' => $getLastServiceId->id));
 		} else {
-			$checkForDocument = $this->DocumentPatientService->getDetailsByPatientId(array($id));
-			$getPatientServices = $this->PatientService->getPatientId($id);
+			$checkForDocument = $this->documentPatientService->getDetailsByPatientId(array($id));
+			$getPatientServices = $this->patientService->getPatientId($id);
 			$servicesId = explode(',', $getPatientServices->service_id);
 
 			if (!empty($servicesId[0])) {
@@ -498,7 +526,7 @@ class TelehealthLocationScheduleEventController extends BaseController
                 if ($existingSchedule) {
                     return response()->json([
                         'status' => false,
-                        'message' => 'Schedule conflict found. The nurse already has an appointment scheduled for this time slot.'
+                        'message' => self::SCHEDULE_CONFLICT
                     ]);
                 }
             }
@@ -513,14 +541,14 @@ class TelehealthLocationScheduleEventController extends BaseController
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
-                'message' => 'Schedule conflict found. The nurse already has an appointment scheduled for this time slot.'
+                'message' => self::SCHEDULE_CONFLICT
             ]);
         }
     }
 
     public function patientTeleAppointments(Request $request,$key){
         $data['key'] = $key;
-		$data['query'] = $query = $this->PatientService->getTeledata($key);
+		$data['query'] = $query = $this->patientService->getTeledata($key);
 
 		if (isset($query->id)) {
             $data['language_list'] =  Language::getLanguageList();
@@ -570,11 +598,11 @@ class TelehealthLocationScheduleEventController extends BaseController
                 if (isset($getAgencyName->agency_name) &&  $getAgencyName->agency_name != '') {
                     $agency_name = $getAgencyName->agency_name;
                 }
-                $update = $this->PatientService->update(
+                $this->patientService->update(
                     array(
-                            'telehealth_date_time' => date('Y-m-d', strtotime($duedate)), 	
-                            'status' => 'booked', 
-                            'last_status_update' => date('Y-m-d H:i:s'), 
+                            'telehealth_date_time' => date('Y-m-d', strtotime($duedate)),
+                            'status' => 'booked',
+                            'last_status_update' => Utility::dateYmdHis(),
                             'telehealth_time_slot' => $request->telehealth_time_slot,
                             'telehealth_language' => $request->telehealth_language,
                         ), array('id' => $patient_id)
@@ -583,12 +611,12 @@ class TelehealthLocationScheduleEventController extends BaseController
                 $this->saveToAppointmentData($request,$duedate,'',$key,$type);
                 $ipaddress = Utility::getIP();
                 $insertLog = [
-                    'type' => 'Update Telehealth Schedule Appointment',
+                    'type' => self::SCHEDULE_TYPE,
                     'link' => url('/patient/view') . '/' . $request->input('id'),
-                    'module' => 'Patient Appointment',
+                    'module' => self::COMMON_MODULE,
                     'object_id' =>  $request->input('id'),
                     'message' => 'Telehealth Schedule Appointment updated by the sms generated link',
-                    'new_response' => serialize(array('appointment_date' => date('Y-m-d H:i:s', strtotime($duedate)), 'telehealth_date_time' => date('Y-m-d', strtotime($duedate)), 'status' => 'booked', 'last_status_update' => date('Y-m-d H:i:s'),'telehealth_time_slot' => $request->telehealth_time_slot,'telehealth_language' => $request->telehealth_language)),
+                    'new_response' => serialize(array('appointment_date' => date('Y-m-d H:i:s', strtotime($duedate)), 'telehealth_date_time' => date('Y-m-d', strtotime($duedate)), 'status' => 'booked', 'last_status_update' => Utility::dateYmdHis(),'telehealth_time_slot' => $request->telehealth_time_slot,'telehealth_language' => $request->telehealth_language)),
                     'ip' => $ipaddress,
                 ];
                 LogsService::save($insertLog);
@@ -609,13 +637,13 @@ class TelehealthLocationScheduleEventController extends BaseController
                 $messages = Utility::getHtmlContent('email_template.email_telehealth_appointment_schedule', $emailData);
                 try {
                     //code...
-                    $mail = Mail::mailer('second')->send([], [], function ($message) use ($email, $subject, $messages, $query) {
+                    Mail::mailer('second')->send([], [], function ($message) use ($email, $subject, $messages) {
                         $message->to($email, "Ny Best Medicals")
                             // $message->to($email, "Ny Best Medicals")->cc($query->email)
                             ->subject($subject)->html($messages);
                     });
                 } catch (\Throwable $th) {
-                    //throw $th;  
+                    Log::error('Mail sending failed');
                 }
             }else{
                 $duedate = $request->input('patient_telehealth_date_id');
@@ -624,11 +652,11 @@ class TelehealthLocationScheduleEventController extends BaseController
                 if (isset($getAgencyName->agency_name) &&  $getAgencyName->agency_name != '') {
                     $agency_name = $getAgencyName->agency_name;
                 }
-                $this->PatientService->update(
+                $this->patientService->update(
                     array(
-                            'telehealth_date_time' => date('Y-m-d', strtotime($duedate)), 	
-                            'status' => 'booked', 
-                            'last_status_update' => date('Y-m-d H:i:s'), 
+                            'telehealth_date_time' => date('Y-m-d', strtotime($duedate)),
+                            'status' => 'booked',
+                            'last_status_update' => Utility::dateYmdHis(),
                             'telehealth_time_slot' => $request->patient_telehealth_time_slot,
                             'telehealth_nurse' => $request->telehealth_nurse,
                         ), array('id' => $patient_id)
@@ -637,16 +665,16 @@ class TelehealthLocationScheduleEventController extends BaseController
                 $this->saveToAppointmentData($request,$duedate,'',$key,$type);
                 $ipaddress = Utility::getIP();
                 $insertLog = [
-                    'type' => 'Update Telehealth Schedule Appointment',
+                    'type' => self::SCHEDULE_TYPE,
                     'link' => url('/patient/view') . '/' . $request->input('id'),
-                    'module' => 'Patient Appointment',
+                    'module' => self::COMMON_MODULE,
                     'object_id' =>  $request->input('id'),
                     'message' => 'Telehealth Schedule Appointment updated by the sms generated link',
-                    'new_response' => serialize(array('appointment_date' => date('Y-m-d H:i:s', strtotime($duedate)), 'telehealth_date_time' => date('Y-m-d', strtotime($duedate)), 'status' => 'booked', 'last_status_update' => date('Y-m-d H:i:s'),'telehealth_time_slot' => $request->patient_telehealth_time_slot)),
+                    'new_response' => serialize(array('appointment_date' => date('Y-m-d H:i:s', strtotime($duedate)), 'telehealth_date_time' => date('Y-m-d', strtotime($duedate)), 'status' => 'booked', 'last_status_update' => Utility::dateYmdHis(),'telehealth_time_slot' => $request->patient_telehealth_time_slot)),
                     'ip' => $ipaddress,
                 ];
                 LogsService::save($insertLog);
-                // $getAppointSchedule = $this->patientTelehealthScheduleService->getTelehalthPatientScheduledata($request->patient_telehealth_time_slot,$patient_id);
+
                 $getAppointSchedule = $this->telehealthLocationScheduleEventService->getTelehalthScheduledata($request->patient_telehealth_time_slot);
                 $email = '';/****remove allstaff email***/
               
@@ -665,13 +693,13 @@ class TelehealthLocationScheduleEventController extends BaseController
                 $messages = Utility::getHtmlContent('email_template.email_telehealth_appointment_schedule', $emailData);
                 try {
                     //code...
-                    $mail = Mail::mailer('second')->send([], [], function ($message) use ($email, $subject, $messages, $query) {
+                    Mail::mailer('second')->send([], [], function ($message) use ($email, $subject, $messages) {
                         $message->to($email, "Ny Best Medicals")
                             // $message->to($email, "Ny Best Medicals")->cc($query->email)
                             ->subject($subject)->html($messages);
                     });
                 } catch (\Throwable $th) {
-                    //throw $th;  
+                    Log::error('Mail sending failed');
                 }
             }
 			
@@ -686,41 +714,41 @@ class TelehealthLocationScheduleEventController extends BaseController
             $service = isset($auth) && !empty($auth) ? implode(',', $request->input('tele_caregiver_service_id')) : $request->input('tele_caregiver_service_id');
             $checkAppointment = Appointment::where('patient_id', $request['id'])->where('telehealth_date', null)->where('doctor_id', null)->where('appointment_date', null)->first();
             if($checkAppointment){
-                $checkAppointment->update([ 
+                $checkAppointment->update([
                     'telehealth_date' => date('Y-m-d', strtotime($duedate)),
-                    'telehealth_by' => isset($auth['id']) && $auth['id'] == '' ? $auth['id']:'',  
+                    'telehealth_by' => isset($auth['id']) && $auth['id'] == '' ? $auth['id']:'',
                     'telehealth_time_slot' => $request->telehealth_time_slot,
                     'telehealth_language' => $request->telehealth_language,
                     'status' => 'booked',
                     'telehealth_unique_id' => $key,
                     'service_id' => $service,
-                    'updated_at' => date('Y-m-d H:i:s'),
+                    'updated_at' => Utility::dateYmdHis(),
                     'updated_by' => $auth['id']??'',
                 ]);
             }else{
                 $checkAppointment = Appointment::where('patient_id', $request['id'])->where('telehealth_date', date('Y-m-d', strtotime($duedate)))->where('doctor_id', null)->first();
                 if ($checkAppointment) {
-                    $checkAppointment->update([ 
+                    $checkAppointment->update([
                             'telehealth_date' => date('Y-m-d', strtotime($duedate)),
-                            'telehealth_by' => isset($auth['id']) && $auth['id'] == '' ? $auth['id']:'',  
+                            'telehealth_by' => isset($auth['id']) && $auth['id'] == '' ? $auth['id']:'',
                             'telehealth_time_slot' => $request->telehealth_time_slot,
                             'telehealth_language' => $request->telehealth_language,
                             'status' => 'booked',
                             'telehealth_unique_id' => $key,
                             'service_id' => $service,
-                            'updated_at' => date('Y-m-d H:i:s'),
+                            'updated_at' => Utility::dateYmdHis(),
                             'updated_by' => $auth['id']??'',
                         ]);
                 } else {
                     $addAppintment = [
-                        "patient_id" => $request['id'], 
+                        "patient_id" => $request['id'],
                         'telehealth_date' => date('Y-m-d', strtotime($duedate)),
-                        'telehealth_by' => isset($auth['id']) && $auth['id'] == '' ? $auth['id']:'',  
+                        'telehealth_by' => isset($auth['id']) && $auth['id'] == '' ? $auth['id']:'',
                         'telehealth_time_slot' => $request->telehealth_time_slot,
                         'telehealth_language' => $request->telehealth_language,
-                        "status" => "booked", 
+                        "status" => "booked",
                         "telehealth_unique_id" => $key,
-                        "created_at" => date('Y-m-d H:i:s'),
+                        "created_at" => Utility::dateYmdHis(),
                         'service_id' => $service
                     ];
                     Appointment::create($addAppintment);
@@ -730,41 +758,44 @@ class TelehealthLocationScheduleEventController extends BaseController
             $service = isset($auth) && !empty($auth) ? implode(',', $request->input('tele_patient_service_id')) : $request->input('tele_patient_service_id');
             $checkAppointment = Appointment::where('patient_id', $request['id'])->where('appointment_time', null)->where('telehealth_date', null)->where('doctor_id', null)->first();
             if($checkAppointment){
-                $checkAppointment->update([ 
+                $checkAppointment->update([
                     'telehealth_date' => date('Y-m-d', strtotime($duedate)),
-                    'telehealth_by' => isset($auth['id']) && $auth['id'] == '' ? $auth['id']:'',  
+                    'telehealth_by' => isset($auth['id']) && $auth['id'] == '' ? $auth['id']:'',
                     'telehealth_time_slot' => $request->patient_telehealth_time_slot,
                     'status' => 'booked',
                     'telehealth_unique_id' => $key,
                     'telehealth_nurse' => $request->telehealth_nurse,
+                    'telehealth_time_frame' => $request->selected_time_frame,
                     'service_id' => $service,
-                    'updated_at' => date('Y-m-d H:i:s'),
+                    'updated_at' => Utility::dateYmdHis(),
                     'updated_by' => $auth['id']??'',
                 ]);
             }else{
                 $checkAppointment = Appointment::where('patient_id', $request['id'])->where('telehealth_date', date('Y-m-d', strtotime($duedate)))->where('doctor_id', null)->where('telehealth_nurse', $request->telehealth_nurse)->first();
                 if ($checkAppointment) {
-                    $checkAppointment->update([ 
+                    $checkAppointment->update([
                             'telehealth_date' => date('Y-m-d', strtotime($duedate)),
-                            'telehealth_by' => isset($auth['id']) && $auth['id'] == '' ? $auth['id']:'',  
+                            'telehealth_by' => isset($auth['id']) && $auth['id'] == '' ? $auth['id']:'',
                             'telehealth_time_slot' => $request->patient_telehealth_time_slot,
                             'status' => 'booked',
                             'service_id' => $service,
                             'telehealth_unique_id' => $key,
                             'telehealth_nurse' => $request->telehealth_nurse,
-                            'updated_at' => date('Y-m-d H:i:s'),
+                            'telehealth_time_frame' => $request->selected_time_frame,
+                            'updated_at' => Utility::dateYmdHis(),
                             'updated_by' => $auth['id']??'',
                         ]);
                 } else {
                     $addAppintment = [
-                        "patient_id" => $request['id'], 
+                        "patient_id" => $request['id'],
                         'telehealth_date' => date('Y-m-d', strtotime($duedate)),
-                        'telehealth_by' => isset($auth['id']) && $auth['id'] == '' ? $auth['id']:'',  
+                        'telehealth_by' => isset($auth['id']) && $auth['id'] == '' ? $auth['id']:'',
                         'telehealth_time_slot' => $request->patient_telehealth_time_slot,
-                        "status" => "booked", 
+                        "status" => "booked",
                         "telehealth_unique_id" => $key,
                         'telehealth_nurse' => $request->telehealth_nurse,
-                        "created_at" => date('Y-m-d H:i:s'),
+                        'telehealth_time_frame' => $request->selected_time_frame,
+                        "created_at" => Utility::dateYmdHis(),
                         'service_id' => $service
                     ];
                     Appointment::create($addAppintment);
@@ -795,12 +826,12 @@ class TelehealthLocationScheduleEventController extends BaseController
                     'day' => $day,
                     'start_time' => $time['start_time'],
                     'end_time' => $time['end_time'],
-                    'slot' => $slots,               
+                    'slot' => $slots,
                 );
                 $this->patientTelehealthScheduleService->save($eventData);
                 $created++;
             }else{
-               return response()->json(['status' => false, 'message' => 'Action skipped: slots already exist.']); 
+               return response()->json(['status' => false, 'message' => 'Action skipped: slots already exist.']);
             }
         }
         
@@ -839,14 +870,14 @@ class TelehealthLocationScheduleEventController extends BaseController
         $flg = 0 ;
         $slotCount = count($slotsData);
         foreach($slotsData as $slotd){
-            $dataC = count($slotd); 
+            $dataC = count($slotd);
             if($dataC == 40){
                 $flg++;
             }
         }
         if($slotCount > 0 && $slotCount == $flg){
             return response()->json(['status' => false, 'message' => 'The slots have already been added, so there is no need to schedule more.']);
-        }else{     
+        }else{
             if (!$slots || !is_array($slots) || count($slots) == 0) {
                 return response()->json(['status' => false, 'message' => 'No slots provided.']);
             }
@@ -859,7 +890,7 @@ class TelehealthLocationScheduleEventController extends BaseController
                     'day' => $slot['day'],
                     'start_time' => $slot['start_time'],
                     'end_time' => $slot['end_time'],
-                    'slot' => $slot['slot'],               
+                    'slot' => $slot['slot'],
                 );
                 $this->patientTelehealthScheduleService->save($eventData);
                 $created++;
@@ -883,7 +914,7 @@ class TelehealthLocationScheduleEventController extends BaseController
             ->get(['start_time', 'end_time', 'slot','id'])->toArray();
         // For now, just return all slots
         foreach($slots as $key => $slot){
-            $subqye = $this->PatientService->getPatientTeleCountByTime($slot['id'], $request->day);
+            $subqye = $this->patientService->getPatientTeleCountByTime($slot['id'], $request->day);
             $slot['start_time'] = date('h:i A', strtotime($slot['start_time']));
             $slot['end_time'] = date('h:i A', strtotime($slot['end_time']));
             $slotRemaing = ($slot['slot'] - $subqye);
@@ -954,49 +985,193 @@ class TelehealthLocationScheduleEventController extends BaseController
 
     public function getTelehealthSlots(Request $request)
     {
-        $search['day'] = date('l', strtotime($request->day));
+        $search['day']   = date('l', strtotime($request->day));
         $search['nurse'] = $request->nurse;
-        $search['type'] = $request->type;
-        $final = array();
-        $slots = $this->telehealthLocationScheduleEventService->getNurseSchedulesData($search);
-        $startDate = $request->day;
-        $dateArray =  $this->disabledDate($startDate);
+        $search['type']  = $request->type;
+        $final      = [];
+        $slots      = $this->telehealthLocationScheduleEventService->getNurseSchedulesData($search);
+        $startDate  = $request->day;
+        $dateArray  = $this->disabledDate($startDate);
         $finalTimeArray = $dateArray['time'];
-        // For now, just return all slots
-        foreach($slots as $key => $slot){
-            $subqye = $this->PatientService->getPatientTeleCountByTime($slot['id'], $request->day);
-            $slot['start_time'] = date('h:i A', strtotime($slot['start_time']));
-            $slot['end_time'] = date('h:i A', strtotime($slot['end_time']));
 
-            if(!empty($finalTimeArray)){
-                    foreach ($finalTimeArray as $time => $dates) {
-                       if($startDate ==$dates){
-                            if (date('H:i A', strtotime($slot['start_time'])) < date('H:i A',strtotime($time))) {
-                                // $final[] = $slot;
-                                if($subqye == 0){
-                                    $final[] = $slot;
-                                }
-                                if($subqye > 0){
-                                    unset($slots[$key]);
-                                }
+        // Parse selected time frame (e.g. "09:00-10:00")
+        $frameStart = null;
+        $frameEnd   = null;
+        if ($request->time_frame) {
+            [$frameStart, $frameEnd] = explode('-', $request->time_frame);
+        }
+
+        foreach ($slots as $slot) {
+            $subqye = $this->patientService->getPatientTeleCountByTime($slot['id'], $request->day);
+
+            $rawStart = $slot['start_time'];
+
+            // Apply time frame filter before formatting
+            if ($frameStart && $frameEnd) {
+                $slotH = date('H:i', strtotime($rawStart));
+                if ($slotH < $frameStart || $slotH >= $frameEnd) {
+                    continue;
+                }
+            }
+
+            $slot['start_time'] = date('h:i A', strtotime($rawStart));
+            $slot['end_time']   = date('h:i A', strtotime($slot['end_time']));
+
+            if (!empty($finalTimeArray)) {
+                foreach ($finalTimeArray as $time => $dates) {
+                    if ($startDate == $dates) {
+                        if (date('H:i A', strtotime($slot['start_time'])) < date('H:i A', strtotime($time))) {
+                            if ($subqye == 0) {
+                                $final[] = $slot;
                             }
                         }
                     }
-            }else{
-                if($subqye == 0){
-                    $final[] = $slot;
                 }
-                if($subqye > 0){
-                    unset($slots[$key]);
+            } else {
+                if ($subqye == 0) {
+                    $final[] = $slot;
                 }
             }
         }
-        // Convert 'slots' to indexed array
-        $slots =  array_values($final);
-        // Output as JSON
+
         return response()->json([
             'status' => true,
-            'slots' => $slots
+            'slots'  => array_values($final)
+        ]);
+    }
+
+    public function getFilteredNursesByTimeFrame(Request $request)
+    {
+        $date      = $request->input('date');
+        $timeFrame = $request->input('time_frame');
+        $patientId = $request->input('patient_id');
+
+        if (!$date || !$timeFrame) {
+            return response()->json(['status' => false, 'nurses' => []]);
+        }
+
+        [$frameStart, $frameEnd] = explode('-', $timeFrame);
+        $dayOfWeek = date('l', strtotime($date));
+
+        // language_id from request overrides patient's saved language (used when patient has none set yet)
+        $patient         = Patient::select('id', 'language')->find($patientId);
+        $langId          = (int) ($request->input('language_id') ?: ($patient->language ?? 0));
+        $patientLangName = $langId
+            ? strtolower(Language::whereNull('deleted_at')->where('id', $langId)->value('name') ?? '')
+            : '';
+
+        // Build nurse language map via getNurses (eager-loaded nurseLanguages) — 1 query
+        $nurseLanguageMap = [];
+        foreach (User::getNurses() as $nurse) {
+            $langs = [];
+            foreach ($nurse->nurseLanguages ?? [] as $nLang) {
+                if (isset($nLang->languages[0])) {
+                    $langs[] = strtolower($nLang->languages[0]['name']);
+                }
+            }
+            $nurseLanguageMap[$nurse['id']] = [
+                'language' => implode(',', array_map('ucfirst', $langs)),
+                'name'     => $nurse['name'],
+                '_langs'   => $langs,
+            ];
+        }
+
+        // 1 query — all slots in the time frame for this day
+        $slotsInFrame = $this->telehealthLocationScheduleEventService->getSlotsInTimeFrame($dayOfWeek, 'Patient', $frameStart, $frameEnd);
+        $slotsByNurse = $slotsInFrame->groupBy('nurse_id');
+
+        // 1 query — which of those slots already have a patient booked on $date
+        $bookedSlotIds = array_flip(
+            $this->patientService->getBookedSlotIdsForDate($slotsInFrame->pluck('id')->all(), $date)
+        );
+
+        $filteredNurses = [];
+
+        foreach ($nurseLanguageMap as $nurseId => $nurseData) {
+            // Language filter
+            if ($patientLangName !== '' && !in_array($patientLangName, $nurseData['_langs'])) {
+                continue;
+            }
+
+            // Check in-memory: nurse has at least one unbooked slot in the frame
+            foreach ($slotsByNurse->get($nurseId, collect()) as $slot) {
+                if (!isset($bookedSlotIds[$slot->id])) {
+                    $filteredNurses[$nurseId] = [
+                        'language' => $nurseData['language'],
+                        'name'     => $nurseData['name'],
+                    ];
+                    break;
+                }
+            }
+        }
+
+        return response()->json(['status' => true, 'nurses' => $filteredNurses]);
+    }
+
+    public function getAvailableTimeFrames(Request $request)
+    {
+        $date       = $request->input('date');
+        $languageId = $request->input('language_id') ?: $request->input('res_telehealth_language');
+
+        if (!$date) {
+            return response()->json(['status' => false, 'time_frames' => []]);
+        }
+
+        $dayOfWeek = date('l', strtotime($date));
+
+        // Slots filtered by language + day — 1 query
+        $slots        = $this->telehealthLocationScheduleEventService->getTimeSlotsByLangDay($languageId, $dayOfWeek, 'patient');
+        $blockedTimes = $this->disabledDate($date)['time'];
+
+        // Frame duration from site settings — 1 query
+        $setting    = $this->siteSettingServices->getDetails();
+        $frameHours = $setting ? (int) ($setting->telehealth_time_frame_hours ?? 1) : 1;
+
+        // 1 query — which slots are already booked on $date
+        $bookedSlotIds = array_flip(
+            $this->patientService->getBookedSlotIdsForDate($slots->pluck('id')->all(), $date)
+        );
+
+        $availableFrames = [];
+
+        foreach ($slots as $slot) {
+            $slotH = date('H:i', strtotime($slot->start_time));
+
+            // Skip disabled-date blocked times
+            foreach ($blockedTimes as $blockedTime => $blockedDate) {
+                if ($blockedDate === $date && $slotH >= $blockedTime) {
+                    continue 2;
+                }
+            }
+
+            // Skip fully booked slots — in-memory check, no DB call
+            if (isset($bookedSlotIds[$slot->id])) {
+                continue;
+            }
+
+            // Group into N-hour window
+            $hour        = (int) date('H', strtotime($slot->start_time));
+            $frameIndex  = (int) floor($hour / $frameHours);
+            $frameStartH = $frameIndex * $frameHours;
+            $frameEndH   = $frameStartH + $frameHours;
+            $frameStart  = str_pad($frameStartH, 2, '0', STR_PAD_LEFT) . ':00';
+            $frameEnd    = str_pad($frameEndH,   2, '0', STR_PAD_LEFT) . ':00';
+            $frameKey    = $frameStart . '-' . $frameEnd;
+
+            if (!isset($availableFrames[$frameKey])) {
+                $availableFrames[$frameKey] = [
+                    'value' => $frameKey,
+                    'label' => date('g:i A', strtotime($frameStart)) . ' – ' . date('g:i A', strtotime($frameEnd)),
+                ];
+            }
+        }
+
+        ksort($availableFrames);
+
+        return response()->json([
+            'status'      => true,
+            'time_frames' => array_values($availableFrames),
+            'frame_hours' => $frameHours,
         ]);
     }
 
@@ -1008,9 +1183,9 @@ class TelehealthLocationScheduleEventController extends BaseController
                 $explode = explode(',',$vals);
                
                 if(!empty($explode[0])){
-                    foreach($explode as $dats){
-                        if(trim($dats) == $startDate){
-                            $finalTimeArray[date('H:i', strtotime($key))]=trim($dats);
+                    foreach($explode as $dates){
+                        if(trim($dates) == $startDate){
+                            $finalTimeArray[date('H:i', strtotime($key))]=trim($dates);
                         }
                     }
                 }

@@ -108,7 +108,7 @@ class PatientDemoGraphicController extends BaseController
 				'mobile' => $request->input('mobile'),
 				'gender' => request('gender'),
 				
-				'language' => $request->input('language'),
+				'language' => Common::getOrCreateLanguageId($request->input('language')),
 				'address1' => $request->input('address1'),
 				'address2' => $request->input('address2'),
 				'state' => $request->input('state'),

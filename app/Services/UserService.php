@@ -120,7 +120,11 @@ class UserService{
         }
         $query = $query->get();
         return $query;
-    }
+     }
+
+     public static function getDetailsById($id){
+		return User::withTrashed()->where('id',$id)->first();
+	}
 
     public function fetchAgencyUserListByAgencyId($search){
         $agencyIds = explode(',',$search['agency_id']);
@@ -139,6 +143,12 @@ class UserService{
         }
 
         return $final;
+    }
+
+    public function getAllUserUsingPluck(){
+       return User::where('delete_flag', 'N')
+        ->selectRaw('CONCAT(first_name, " ", last_name) as full_name1, id')
+        ->pluck('full_name1', 'id');
     }
 
     public function getNurseList()

@@ -109,12 +109,14 @@ use App\Services\FieldMasterService;
 use App\Helpers\MergeUtilityHelper;
 use App\Services\TaskHealthMasterService;
 use App\Services\UserService;
+use App\Helpers\PatientModuleHelper;
+use App\Services\AgencyService;
+use App\Services\MasterService;
 use App\Services\HHALogService;
 use App\Services\AwsBedrockService;
 use App\Services\AwsTextractService;
 use Illuminate\Support\Facades\Log;
 
-use App\Services\AgencyService;
 use App\Services\LanguageService;
 class PatientController extends BaseController
 {
@@ -133,7 +135,7 @@ class PatientController extends BaseController
 	protected $agencyService;
 	protected $languageService;
 	protected const STATIC_EMAIL = "allstaff@nybestmedical.com";
-	public function __construct(PatientNotesService $PatientNotesService, AppointmentImportFileService $AppointmentImportFileService, PatientService $PatientService, DocumentPatientService $DocumentPatientService, DoctorService $DoctorService, LocationMasterService $LocationMasterService, LocationScheduleService $LocationScheduleService, PatientSMSLogService $PatientSMSLogService, CommonLogService $CommonLogService, NyBestReminderNotificationService $nyBestReminder, RequestService $requestService, HHACaregiverMedicalService	$hhaCaregiverMedicalService, SendEmailNotificationSerivce $SendEmailNotificationSerivce, SmsService $SmsService, AgencyWiseServiceService	$AgencyWiseServiceService, AlayacareService $AlayacareService, RobortService $robortService, ThirdPartyPatientMasterService $thirdPartyPatientMaster, UserSendPatientDocumentLogService $userSendPatientDocumentLogService, InsuranceMasterService $insuranceMasterService, FormBuilderService $FormBuilderService, DocumentUploadService $documentUploadService, UserWiseAgencyService $userWiseAgencyService, PatientServicesRequest $patientServicesRequest, PatientWiseServicesRequests $patientWiseServicesRequests, DisableDateService $disableDateService, NotificationUserService $notificationUserService, TaskService $taskService, DynamicFormLogService $dynamicFormLogService, AppointmentService $appoimentService, AgencyWiseSMSNotificationService $agencyWiseSMSNotificationService, AlayacareClientService $alayaclientService, PaymentLogService $paymentLogService, RateCardService $rateCardService, DocumentSendService $documentSendService, AgencyWiseThirdPartyAPIService $agencyWiseThirdPartyAPIService, TelehealthLocationScheduleEventService $telehealthLocationScheduleEventService, PatientTelehealthScheduleService $patientTelehealthScheduleService, MultiplePatientDocApprovalService $multiplePatientDocApprovalService, UserDocApprovalService $userDocApprovalService, UserDocQuestionMarkedService $userDocQuestionMarkedService, DocCompletedInternalUseLogService $docCompletedInternalUseLogService,UserCreatorEmailNotificationService $userCreatorEmailNotificationService,AssignNyBestUserService $assignNyBestUserService,HHAPatientService $hhaPatientService, BranchListService $branchListService,PatientThirdPartyEmployeeService $patientThirdPartyEmployeeService,FieldMasterService $fieldMasterService,TaskHealthMasterService $taskHealthMasterService,AppointmentPortalMergeLogsService $appointmentMergeLogsService, AgencyNoteService $agencyNoteService,UserService $userService,HHALogService $hhaLogService,AgencyService $agencyService, LanguageService $languageService)
+	public function __construct(PatientNotesService $PatientNotesService, AppointmentImportFileService $AppointmentImportFileService, PatientService $PatientService, DocumentPatientService $DocumentPatientService, DoctorService $DoctorService, LocationMasterService $LocationMasterService, LocationScheduleService $LocationScheduleService, PatientSMSLogService $PatientSMSLogService, CommonLogService $CommonLogService, NyBestReminderNotificationService $nyBestReminder, RequestService $requestService, HHACaregiverMedicalService	$hhaCaregiverMedicalService, SendEmailNotificationSerivce $SendEmailNotificationSerivce, SmsService $SmsService, AgencyWiseServiceService	$AgencyWiseServiceService, AlayacareService $AlayacareService, RobortService $robortService, ThirdPartyPatientMasterService $thirdPartyPatientMaster, UserSendPatientDocumentLogService $userSendPatientDocumentLogService, InsuranceMasterService $insuranceMasterService, FormBuilderService $FormBuilderService, DocumentUploadService $documentUploadService, UserWiseAgencyService $userWiseAgencyService, PatientServicesRequest $patientServicesRequest, PatientWiseServicesRequests $patientWiseServicesRequests, DisableDateService $disableDateService, NotificationUserService $notificationUserService, TaskService $taskService, DynamicFormLogService $dynamicFormLogService, AppointmentService $appoimentService, AgencyWiseSMSNotificationService $agencyWiseSMSNotificationService, AlayacareClientService $alayaclientService, PaymentLogService $paymentLogService, RateCardService $rateCardService, DocumentSendService $documentSendService, AgencyWiseThirdPartyAPIService $agencyWiseThirdPartyAPIService, TelehealthLocationScheduleEventService $telehealthLocationScheduleEventService, PatientTelehealthScheduleService $patientTelehealthScheduleService, MultiplePatientDocApprovalService $multiplePatientDocApprovalService, UserDocApprovalService $userDocApprovalService, UserDocQuestionMarkedService $userDocQuestionMarkedService, DocCompletedInternalUseLogService $docCompletedInternalUseLogService,UserCreatorEmailNotificationService $userCreatorEmailNotificationService,AssignNyBestUserService $assignNyBestUserService,HHAPatientService $hhaPatientService, BranchListService $branchListService,PatientThirdPartyEmployeeService $patientThirdPartyEmployeeService,FieldMasterService $fieldMasterService,TaskHealthMasterService $taskHealthMasterService,AppointmentPortalMergeLogsService $appointmentMergeLogsService, AgencyNoteService $agencyNoteService,UserService $userService,HHALogService $hhaLogService,AgencyService $agencyService,MasterService $masterService, LanguageService $languageService)
 	{
 		// $this->middleware('permission:appointments-list|appointments-add|appointments-edit|appointments-delete|appointments-view', ['only' => ['index','save','view']]);
 		// $this->middleware('permission:appointments-list', ['only' => ['index']]);
@@ -199,6 +201,8 @@ class PatientController extends BaseController
 		$this->taskHealthMasterService = $taskHealthMasterService;
 		$this->agencyNoteService = $agencyNoteService;
 		$this->userService = $userService;
+
+		$this->masterService = $masterService;
 		$this->hhaLogService = $hhaLogService;
 		$this->agencyService = $agencyService;
 		$this->languageService = $languageService;
@@ -414,7 +418,13 @@ class PatientController extends BaseController
 				}
 			}
 			$nurse = $langArray;
-			if (isset($vsl->telehealth_time_slot)) {
+			if (!empty($vsl->telehealth_time_frame)) {
+				$vsl->telehealth_time_slot = $vsl->telehealth_time_frame;
+				$rawNurseId = $vsl->telehealth_nurse;
+				if (!empty($rawNurseId) && isset($nurse[$rawNurseId])) {
+					$vsl->telehealth_nurse = 'C#' . $rawNurseId . '(' . $nurse[$rawNurseId]['language'] . ')';
+				}
+			} elseif (isset($vsl->telehealth_time_slot)) {
 				$telhealth = $this->telehealthLocationScheduleEventService->getTelehalthappointemntScheduledata($vsl->telehealth_time_slot);
 				$vsl->telehealth_time_slot = isset($telhealth['start_time']) ? $telhealth['start_time'] . ' - ' . $telhealth['end_time'] : '';
 				$nLanguage="";
@@ -561,7 +571,7 @@ class PatientController extends BaseController
 				//'agency_id' => $user['agency_fk'],
 				'patient_code' => $request->input('patient_code'),
 				'diciplin' => $request->input('diciplin'),
-				'language' => $request->input('language'),
+				'language' => Common::getOrCreateLanguageId($request->input('language')),
 				'address1' => $request->input('address1'),
 				'address2' => $request->input('address2'),
 				'state' => $request->input('state'),
@@ -864,7 +874,7 @@ class PatientController extends BaseController
 					'remarks' => $message,
 					'patient_code' => $request->input('patient_code'),
 					'diciplin' => $request->input('diciplin'),
-					'language' => $request->input('language'),
+					'language' => Common::getOrCreateLanguageId($request->input('language')),
 					'address1' => $request->input('address1'),
 					'address2' => $request->input('address2'),
 					'state' => $request->input('state'),
@@ -1111,6 +1121,8 @@ class PatientController extends BaseController
 				$ATime = '';
 				if ($list->start_time != '') {
 					$ATime = date('h:i A', strtotime($list->start_time));
+				} else if (!empty($list->telehealth_time_frame)) {
+					$ATime = $list->telehealth_time_frame;
 				} else if ($list->telehealth_time_slot != "") {
 					$telhealth = $this->telehealthLocationScheduleEventService->getTelehalthScheduledata($list->telehealth_time_slot);
 					$ATime = date('h:i A', strtotime($telhealth['start_time'])) . '-' . date('h:i A', strtotime($telhealth['end_time']));
@@ -1201,7 +1213,15 @@ class PatientController extends BaseController
 				}
 				$languageName  = $languageMap[$list->language] ?? '';
 				$nurseId       = $slotNurseMap[$list->telehealth_time_slot] ?? null;
-				$clinicianCode = $nurseId ? 'C#' . $nurseId : '';
+				$clinicianCode = "";
+				if (!empty($list->telehealth_time_frame)) {
+					$rawNurseId = $list->telehealth_nurse;
+					if (!empty($rawNurseId)) {
+						$clinicianCode = 'C#' . $rawNurseId;
+					}
+				} else {
+					$clinicianCode = $nurseId ? 'C#' . $nurseId : '';
+				}
 
 				// Prepare all data fields based on agency
 				if ($user->agency_fk == 106) {
@@ -1629,8 +1649,13 @@ class PatientController extends BaseController
 
 			$data['serviceAmountData'] = $serviceAmountData;
 			$data['disciplineData'] = Master::getAllDataByMasterTypeFk(array(17, 26));
-			if ($data['record']->telehealth_time_slot) {
-				$data['telehealth_time_slot'] = $this->telehealthLocationScheduleEventService->getTelehalthScheduledata($data['record']->telehealth_time_slot);
+			$data['telehealth_time_frame'] = $data['record']->telehealth_time_frame ?? null;
+			if (!$data['telehealth_time_frame'] && $data['record']->telehealth_time_slot) {
+				$slot = $this->telehealthLocationScheduleEventService->getTelehalthScheduledata($data['record']->telehealth_time_slot);
+				$data['telehealth_time_slot'] = $slot;
+				if (!empty($slot['start_time']) && !empty($slot['end_time'])) {
+					$data['telehealth_time_frame'] = date('h:i A', strtotime($slot['start_time'])) . ' - ' . date('h:i A', strtotime($slot['end_time']));
+				}
 			}
 			$data['nurse'] = User::getNurses();
 			$langArray = array();
@@ -2253,6 +2278,21 @@ class PatientController extends BaseController
 		$file      = $request->file('file');
 		$extension = strtolower($file->getClientOriginalExtension());
 
+		// Fetch fresh patient record from DB so mismatch check always uses current data
+		$patientRecord = null;
+		$recordId = $request->input('record_id');
+		if ($recordId) {
+			$rec = $this->PatientService->getPatientDetailsByIdWhitoutAgency($recordId);
+			if ($rec) {
+				$patientRecord = [
+					'first_name' => $rec->first_name ?? '',
+					'last_name'  => $rec->last_name  ?? '',
+					'dob'        => $rec->dob        ?? '',
+					'mobile'     => $rec->mobile     ?? '',
+				];
+			}
+		}
+
 		try {
 			$textractService = new AwsTextractService();
 			$extractedText   = $textractService->extractTextFromLocalFile($file->getRealPath(), $extension);
@@ -2264,7 +2304,10 @@ class PatientController extends BaseController
 			$bedrockService = new AwsBedrockService();
 			$result         = $bedrockService->analyzeMedicalDocument($extractedText);
 
-			return response()->json($result['parsed'], 200);
+			return response()->json([
+				'ai'     => $result['parsed'],
+				'patient'=> $patientRecord,
+			], 200);
 		} catch (\Throwable $e) {
 			Log::error('[AI Analyse] ' . $e->getMessage());
 			return response()->json(['error' => $e->getMessage()], 502);
@@ -2321,11 +2364,22 @@ class PatientController extends BaseController
 
 			$bedrockService = new AwsBedrockService();
 			$result         = $bedrockService->analyzeMedicalDocument($extractedText);
-			$parsed         = $result['parsed'];
+			$parsed = $result['parsed'];
 
 			$doc->ai_summary = is_string($parsed) ? $parsed : json_encode($parsed);
 			$doc->save();
-			
+				$user = auth()->user();
+				$ipaddress = Utility::getIP();
+				$insertLog = [
+					'type' => 'View AI Analysis',
+					'link' => url('/patient/view/') . '/' . $doc->patient_id,
+					'module' => 'Patient Appointment',
+					'object_id' => $doc->patient_id,
+					'message' => $user->first_name . ' ' . $user->last_name . ' performed AI Document Analysis on Appointment Document ID #' . $docId . '.',
+					'new_response' => serialize($parsed),
+					'ip' => $ipaddress,
+				];
+				LogsService::save($insertLog);
 			return response()->json($parsed, 200);
 		} catch (\Throwable $e) {
 			Log::error('[AI Analyse By Doc] ' . $e->getMessage());
@@ -2439,6 +2493,10 @@ class PatientController extends BaseController
 					$data['info_only'] = $request->upload_for_info_only;
 				}
 				$newResponse = $data;
+				$data['ai_summary'] = '';
+				if(isset($request->ai_summary) && !empty($request->ai_summary)){
+					$data['ai_summary'] = $request->ai_summary;
+				}
 				$insert = $this->DocumentPatientService->save($data);
 			}
 
@@ -2455,14 +2513,19 @@ class PatientController extends BaseController
 						$this->documentUploadService->save($data1);
 					}
 				}
+				
 				DocumentHelper::updatePatientDocumentCounts($request->input('id'),$medication_list,$insurance_elg, 0, 0,$mdo_tag,0);
+				$messageForLog = $user->first_name . ' ' . $user->last_name . ' has Add Document From Appointment';
+				if(isset($data['ai_summary']) && !empty($data['ai_summary'])){
+					$messageForLog .= ' with AI Summary.';
+				}
 				$ipaddress = Utility::getIP();
 				$insertLog = [
 					'type' => 'Add Document From Appointment',
 					'link' => url('/patient/view/') . '/' . $request->input('id'),
 					'module' => 'Patient Appointment',
 					'object_id' => $request->input('id'),
-					'message' => $user->first_name . ' ' . $user->last_name . ' has Add Document From Appointment',
+					'message' => $messageForLog,
 					'new_response' => serialize($data),
 
 					'ip' => $ipaddress,
@@ -3043,6 +3106,11 @@ class PatientController extends BaseController
 			$isSendSMS = Common::checkTeleAgencyService($getServiceArray, $query->agency_id);
 			if ($isSendSMS == 1) {
 				$getAppointSchedule = $this->telehealthLocationScheduleEventService->getTelehalthScheduledata($patient->telehealth_time_slot);
+				if (!empty($patient->telehealth_time_frame) && $getAppointSchedule) {
+					[$fs, $fe] = explode('-', $patient->telehealth_time_frame);
+					$getAppointSchedule->start_time = trim($fs) . ':00';
+					$getAppointSchedule->end_time   = trim($fe) . ':00';
+				}
 				$unitId = $patient->telehealth_key;
 				$smsMessage = common::sendsmsAgencyTelehealth($getAppointSchedule, $unitId, $query, $getAgencyName, $patient->patient_id);
 				if (isset($smsMessage) && !empty($smsMessage)) {
@@ -3187,6 +3255,11 @@ class PatientController extends BaseController
 			$isSendSMS = Common::checkTeleAgencyService($getServiceArray, $query->agency_id);
 			if ($isSendSMS == 1) {
 				$getAppointSchedule = $this->telehealthLocationScheduleEventService->getTelehalthScheduledata($patient->telehealth_time_slot);
+				if (!empty($patient->telehealth_time_frame) && $getAppointSchedule) {
+					[$fs, $fe] = explode('-', $patient->telehealth_time_frame);
+					$getAppointSchedule->start_time = trim($fs) . ':00';
+					$getAppointSchedule->end_time   = trim($fe) . ':00';
+				}
 				$unitId = $patient->telehealth_key;
 				$smsMessage = common::sendsmsAgencyTelehealthReminder($getAppointSchedule, $unitId, $query, $getAgencyName, $patient->patient_id);
 				if (isset($smsMessage) && !empty($smsMessage)) {
@@ -4742,11 +4815,7 @@ class PatientController extends BaseController
 
 	public function patientAssign(Request $request)
 	{
-
-
-		$user = auth()->user();
 		$appoimentId = $request['appoiment_id'];
-		$assignId = $request['assign_id'];
 		$data = array('assign_user_id' => $request->input('assign_id'),'dept_id' => $request->assign_department);
 		$this->commonAssignUser($request->input('appoiment_id'),$data,url('/patient/view/' . $appoimentId));
 		Session::flash('success', 'Assign appoinment successfully.');
@@ -7419,7 +7488,6 @@ if ($status == 'Inactive') {
 
 	public function saveBulkAssignUser(Request $request)
 	{
-		$user = auth()->user();
 		$validator = Validator::make($request->all(), [
 			'bulk_appointments_id' => 'required',
 			'bulk_user_id' => 'required',
@@ -7433,7 +7501,10 @@ if ($status == 'Inactive') {
 			$explode = explode(',', $request->bulk_appointments_id);
 			foreach ($explode as $val) {
 				$data = array('assign_user_id' => $request->bulk_user_id);
-				$this->commonAssignUser($val,$data,url('/save-bulk-assign-user'));
+				if (!empty($request->bulk_assign_department)) {
+					$data['dept_id'] = $request->bulk_assign_department;
+				}
+				$this->commonAssignUser($val,$data,url('/save-bulk-assign-user'),'bulk');
 			}
 			return redirect("/appointment")
 				->with('success', 'Appointments assigned successfully');
@@ -7928,7 +7999,7 @@ if ($status == 'Inactive') {
 		}
 	}
 
-	private function commonAssignUser($appoiment_id,$data,$link){
+	private function commonAssignUser($appoiment_id,$data,$link,$type=""){
 		$user = auth()->user();
 		$old_response = $this->PatientService->getDetailById($appoiment_id);
 		$update = $this->PatientService->update($data, array('id' => $appoiment_id));
@@ -7936,13 +8007,12 @@ if ($status == 'Inactive') {
 		$data['created_by'] = $user->id;
 		$assignUser = User::getDetailsById($data['assign_user_id']);
 		$ipaddress = Utility::getIP();
-
 		$insertLog = [
 			'type' => 'Assign Appointment',
 			'link' => $link,
 			'module' => 'Patient Appointment',
 			'object_id' => $appoiment_id,
-			'message' => $user->first_name . ' ' . $user->last_name . ' has Assign Patient Appointment to ' . $assignUser->full_name,
+			'message' => $user->first_name . ' ' . $user->last_name . ' assigned appointment to ' . $assignUser->full_name . ($type == 'bulk' ? ' via bulk process' : ''),
 			'new_response' => serialize($data),
 			'old_response' => serialize($old_response),
 			'ip' => $ipaddress,
@@ -8658,7 +8728,9 @@ if ($status == 'Inactive') {
 					}
 				}
 
-				if (isset($record->telehealth_time_slot) && $record->telehealth_time_slot !="") {
+				if (!empty($record->telehealth_time_frame)) {
+					$record->telehealth_time_slot = $record->telehealth_time_frame;
+				} elseif (isset($record->telehealth_time_slot) && $record->telehealth_time_slot != "") {
 					$telhealth = $this->telehealthLocationScheduleEventService->getTelehalthappointemntScheduledata($record->telehealth_time_slot);
 					if (isset($telhealth['start_time']) && isset($telhealth['end_time'])) {
 						$record->telehealth_time_slot = $telhealth['start_time'] . ' - ' . $telhealth['end_time'];
@@ -8745,7 +8817,276 @@ if ($status == 'Inactive') {
         ], 201);
     }
 
-    public function updateNoMedicationTaken(Request $request)
+	public function exportCsv(Request $request){
+		$user = auth()->user();
+		$selectedColumnsJson = $request->columns;
+		$selectedColumns = [];
+		if ($selectedColumnsJson) {
+			$selectedColumns = json_decode($selectedColumnsJson, true);
+		}
+	
+		[$columns, $dbFields, $allColumns, $columnIndexMap] = $this->optimizeFields($selectedColumns);
+
+		$allStatusIds = [];
+		if (!empty($request->agency_status)) {
+			$field_data = $this->fieldMasterService->getAgencyStatusData();
+			foreach ($field_data as $item) {
+				$allStatusIds[] = $item['id'];
+			}
+		}
+
+		// Returns query builder (not collection) so we can chunk
+		$query = $this->PatientService->getDataExportLatest($request->all(), $dbFields, $allStatusIds);
+
+		// Pre-load lookup data to avoid N+1 queries
+		$allAgencyNames = $this->agencyService->getAllAgencyList();
+		$allServiceNames = $this->masterService->getAllName();
+		$userDetails = $this->userService->getAllUserUsingPluck();
+		$locations = $this->LocationMasterService->getAllLocationUsingPluck();
+		$locationSchedule = $this->LocationScheduleService->getAllLocationSchedule();
+		$languageMap = $this->languageService->getAllLanguagesById();
+		// Build column-name to db-field mapping
+	
+		$filename = 'Patient' .Utility::convertDateStaticUseExportOtherFile();
+		$headers = array(
+			"Content-type" => "text/csv",
+			"Content-Disposition" => "attachment; filename=" . $filename . ".csv",
+			"Pragma" => "no-cache",
+			"Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+			"Expires" => "0",
+		);
+	
+		$allArrayData = [
+			'agencies'=>$allAgencyNames,
+			'services'=>$allServiceNames,
+			'users'=>$userDetails,
+			'locations'=>$locations,
+			'locationSchedule'=>$locationSchedule,
+			'languageMap'=>$languageMap
+		];
+		
+		$callback = function () use ($query, $columns, $columnIndexMap, $user, $allArrayData) {
+			if (ob_get_level() > 0) {
+				ob_clean();
+			}
+			$file = fopen('php://output', 'w');
+			fputcsv($file, $columns);
+		
+
+			$query->chunk(1000, function ($patients) use ($file, $columns, $columnIndexMap, $user, $allArrayData) {
+				
+				foreach ($patients as $list) {
+					
+					$rowData = $this->buildExportRow($list,  $user,$allArrayData);
+
+					if (!empty($columnIndexMap)) {
+						$filteredData = [];
+						foreach ($columns as $column) {
+							if (isset($columnIndexMap[$column]) && isset($rowData[$columnIndexMap[$column]])) {
+								$filteredData[] = $rowData[$columnIndexMap[$column]];
+							} else {
+							
+								$filteredData[] = '';
+							}
+						}
+						fputcsv($file, $filteredData);
+					} else {
+						fputcsv($file, $rowData);
+					}
+				}
+				flush();
+			});
+
+			fclose($file);
+		};
+
+		return response()->stream($callback, 200, $headers);
+	}
+
+	private function buildExportRow($list, $user, $allArrayData){
+
+		$allAgencyNames = $allArrayData['agencies'];
+		$allServiceNames = $allArrayData['services'];
+		$allUser = $allArrayData['users'];
+		$languageMap = $allArrayData['languageMap'];
+		$agencyName = $allAgencyNames[$list->agency_id] ?? "";
+
+		$date = '';
+		if ($list->dob != '0000-00-00' && $list->dob != '') {
+			$date = Utility::convertMDY($list->dob);
+		}
+
+		$Adate = '';
+		if ($list->appointment_date != '0000-00-00 00:00:00' && $list->appointment_date != '') {
+			$Adate = Utility::convertMDY($list->appointment_date);
+		} else if ($list->telehealth_date_time != '0000-00-00 00:00:00' && $list->telehealth_date_time != '') {
+			$Adate = Utility::convertMDY($list->telehealth_date_time);
+		}
+
+		$ATime = '';
+		$startTime = $allArrayData['locationSchedule'][$list->appoinment_time_id]??"";
+		if ($startTime != '') {
+			$ATime = date('h:i A', strtotime($startTime));
+		} else if (!empty($list->telehealth_time_slot)) {
+			$telhealth = $this->telehealthLocationScheduleEventService->getTelehalthScheduledata($list->telehealth_time_slot);
+			if ($telhealth) {
+				$ATime = date('h:i A', strtotime($telhealth['start_time'])) . '-' . date('h:i A', strtotime($telhealth['end_time']));
+			}
+		}
+
+		$servie = '';
+		if (isset($list->service_id) && $list->service_id != '') {
+			$serviceIds = array_filter(explode(',', $list->service_id));
+			$serviceNamesList = [];
+			foreach ($serviceIds as $sid) {
+				if (isset($allServiceNames[$sid])) {
+					$serviceNamesList[] = $allServiceNames[$sid];
+				}
+			}
+			$servie = implode(',', $serviceNamesList);
+		}
+
+		$assignName = '';
+		if (!empty($list->assign_user_id)) {
+			$assignName = $allUser[$list->assign_user_id]??"";
+		}
+
+		$created_by_username = $allUser[$list->created_by]??"";
+
+		$created_date = '';
+		if ($list->created_date != "" && $list->created_date != NULL) {
+			$created_date = Utility::convertMDYTime($list->created_date);
+		}
+
+		$due_date = '';
+		if ($list->due_date != "" && $list->due_date != NULL && $list->due_date != '1969-12-31') {
+			$due_date = Utility::convertMDY($list->due_date);
+		}
+
+		$fu_date = '';
+		if ($list->fu_date != "" && $list->fu_date != NULL && $list->fu_date != "1969-12-31") {
+			$fu_date = Utility::convertMDY($list->fu_date);
+		}
+
+		$isArchive = ($list->archived_at != '') ? 'Yes' : 'No';
+
+		$completedDate = '';
+		if ($list->completed_date != '') {
+			$completedDate = Utility::convertMDY($list->completed_date);
+		}
+
+		$followUpDate = '';
+		if ($list->follow_date != '') {
+			$followUpDate = Utility::convertMDY($list->follow_date);
+		}
+
+		$trainingDate = '';
+		if (!empty($list->traning_due_date)) {
+			$trainingDate = Utility::convertMDY($list->traning_due_date);
+		}
+
+		$lastStatusUpdated = '';
+		if ($list->last_status_update != '' && $list->last_status_update != "0000-00-00 00:00:00") {
+			$lastStatusUpdated = Utility::convertMDYTime($list->last_status_update);
+		}
+
+		$reasonStatus = "";
+		if ($list->reason_id != "") {
+			if(in_array(strtolower( $list->status),['cancelled','refused'])){
+				$reasonStatus = $allServiceNames[$list->reason_id]??"";
+			}
+		}
+
+		
+		$patientFullName = trim($list->first_name . ' ' . ($list->middle_name ?? '') . ' ' . $list->last_name);
+		$patientFullName = preg_replace('/\s+/', ' ', $patientFullName);
+
+		$status = $list->status;
+		if (strtolower($status) == 'inactive') {
+			$status = 'Inactive';
+		}
+
+		$locationName = $allArrayData['locations'][$list->location_id] ?? '';
+
+		if ($user->agency_fk == 106) {
+			return array($list->id, $agencyName, $list->type, $list->diciplin, $list->patient_code, $patientFullName, $list->phone ?? $list->mobile, $list->gender, $date, $locationName, $Adate, $ATime, $servie, $status, $list->remarks, $list->appointment_mode, $assignName, $created_date, $created_by_username, $due_date, $fu_date, $isArchive, $list->training_status, $completedDate, $followUpDate, $trainingDate, $list->location_branch, $reasonStatus);
+		}
+
+		$allData = array($list->id, $agencyName, $list->type, $list->diciplin, $list->patient_code, $patientFullName, $list->phone ?? $list->mobile, $list->gender, $date, $locationName, $Adate, $ATime, $servie, $status, $list->remarks, $list->appointment_mode, $assignName, $created_date, $created_by_username, $due_date, $fu_date, $isArchive, $completedDate, $followUpDate, $list->location_branch, $reasonStatus, $list->state,$languageMap[$list->language]??"");
+		if($user->user_type_fk ==184){
+			$telehealth_nurse = "";
+			if($list->telehealth_nurse !=""){
+				$telehealth_nurse = "C#".$list->telehealth_nurse;
+			}
+			$allData[] = $telehealth_nurse;
+			$allData[] = $trainingDate;
+			$allData[] = $list->training_status??"";
+			$allData[] = $lastStatusUpdated;
+			$statusUpdatedByName = $allUser[$list->last_status_update_by]??"";
+			$allData[] = $statusUpdatedByName;
+			$allData[] = $list->referral_type;
+			$allData[] = $allUser[$list->agency_user_id]??"";
+		}
+		
+		return $allData;
+	}
+
+	private function optimizeFields($selectedColumns){
+		$user = auth()->user();
+		$fields = PatientModuleHelper::createColumnWiseFields();
+		$allColumns = [];
+		if ($user->agency_fk == 106) {
+			$allColumns = array('Portal Id', 'Agency Name', 'Type', 'Discipline', 'Patient Code', 'Full Name', 'Phone', 'Gender', 'Dob', 'Location', 'Appointment Date', 'Appointment Start Time', 'Service', 'Status', 'Notes', "Booked Via", "Assign NyBest User", "Created Date", "Created By", 'Due Date', 'FU Date', 'Is Archive', 'Training Status', 'Completed date', 'Follow Up Date', 'Traning Due Date', 'Location / Branch', 'Reason');
+		} else {
+			$allColumns = array('Portal Id', 'Agency Name', 'Type', 'Discipline', 'Patient Code', 'Full Name', 'Phone', 'Gender', 'Dob', 'Location', 'Appointment Date', 'Appointment Start Time', 'Service', 'Status', 'Notes', "Booked Via", "Assign NyBest User", "Created Date", "Created By", 'Due Date', 'FU Date', 'Is Archive', 'Completed date', 'Follow Up Date', 'Location / Branch', 'Reason','state');
+			if ($user->user_type_fk == 184) {
+				$allColumns[] = 'Training Date';
+				$allColumns[] = 'Training Status';
+				$allColumns[] = 'Last Status Update Date';
+				$allColumns[] = 'Last Status Updated By';
+				$allColumns[] = 'Referral Type';
+				
+			}
+			$allColumns[] = 'Language';
+				$allColumns[] = 'Clinician Code';
+				$allColumns[] = 'Agency Rep';
+		}
+
+		// Use selected columns if provided, otherwise use all columns
+		$columns = !empty($selectedColumns) ? $selectedColumns : $allColumns;
+
+		// Create column index map for filtering data
+		$columnIndexMap = [];
+		$useFiltering = !empty($selectedColumns) && count($selectedColumns) < count($allColumns);
+		$dbFields = [];
+		if ($useFiltering) {
+			foreach ($columns as $column) {
+				$index = array_search($column, $allColumns);
+				
+				if ($index !== false) {
+					
+					$columnIndexMap[$column] = $index;
+				}
+
+				if($column !=""){
+					$dbFields[] = $fields[$column];
+		
+				}
+			}
+		}else{
+			foreach ($columns as $column) {
+				if($column !=""){
+					if(isset($fields[$column])){
+						$dbFields[] = $fields[$column]??"";
+					}
+				}
+			}
+		}
+
+		return [$columns, $dbFields, $allColumns, $columnIndexMap];
+	}
+
+	public function updateNoMedicationTaken(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'patient_id' => 'required',

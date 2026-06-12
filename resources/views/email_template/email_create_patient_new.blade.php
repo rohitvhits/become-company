@@ -42,7 +42,7 @@
                                     <td style="color: #153643; font-family: Arial, sans-serif; font-size: 13px; line-height: 20px;">
                                         <b>Portal Id :</b> <a target="_blank" href="{{url('patient/view/')}}/{{$insert}}"> {{$insert}} </a>
                                     </td>
-                                </tr>    
+                                </tr>
 
                                 @if($type == 'Caregiver')
                                     <tr>
@@ -62,18 +62,26 @@
                                     <td style="color: #153643; font-family: Arial, sans-serif; font-size: 13px; line-height: 20px;">
                                         <b>Mobile No :</b> {{$mobile}}
                                     </td>
-                                </tr> 
+                                </tr>
 
                                 <tr>
                                     <td style="color: #153643; font-family: Arial, sans-serif; font-size: 13px; line-height: 20px;">
                                         <b>Gender :</b> {{$gender}}
                                     </td>
-                                </tr> 
+                                </tr>
+
+                                @if(isset($referral_by) && $referral_by=='RNPAD')
+                                <tr>
+                                    <td style="color: #153643; font-family: Arial, sans-serif; font-size: 13px; line-height: 20px;">
+                                        <b>Referral By :</b> {{$referral_by}}
+                                    </td>
+                                </tr>
+                                @endif
 
                                 <tr>
                                     <td style="padding: 15px 0 10px 0; color: #153643; font-family: Arial, sans-serif; font-size: 13px; line-height: 20px;">
                                         Thank you,<br/>
-                                        NyBest Medical 
+                                        NyBest Medical
                                     </td>
                                 </tr>
 

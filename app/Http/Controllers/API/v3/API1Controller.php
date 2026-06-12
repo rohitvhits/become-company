@@ -30,6 +30,7 @@ use App\Services\DocumentUploadService;
 use App\Services\PatientServicesRequest;
 use App\Services\SiteSettingServices;
 use App\Helpers\Utility;
+use App\Helpers\Common;
 use Illuminate\Support\Facades\Mail;
 use App\Services\EmmacareWebhookService;
 use App\Services\InsuranceMasterService;
@@ -434,7 +435,7 @@ class API1Controller extends BaseController
 				'service_id' => implode(',',$serviceIdArray),
 				'patient_code' => $request->patient_code,
 				'diciplin' => $request->diciplin,
-				'language' => $request->language,
+				'language' => Common::getOrCreateLanguageId($request->language),
 				'address1' => $request->address1,
 				'address2' => $request->address2,
 				'state' => $request->state,
@@ -1192,15 +1193,15 @@ class API1Controller extends BaseController
 	public function createNewPatient($data){
 		$age = NULL;
 		if (isset($data['dob']) && $data['dob'] != '') {
-			$age = date('Y-m-d', strtotime($data['dob']));
+			$age = Utility::convertMdyToYmdUsingCarbon($data['dob']);
 		}
 		$fuDate =NULL;
 		if (isset($data['fu_date']) && $data['fu_date'] != '') {
-			$fuDate = date('Y-m-d', strtotime($data['fu_date']));
+			$fuDate = Utility::convertMdyToYmdUsingCarbon($data['fu_date']);
 		}
 		$dueDate = NULL;
 		if (isset($data['due_date']) && $data['due_date'] != '') {
-			$dueDate = date('Y-m-d', strtotime($data['due_date']));
+			$dueDate = Utility::convertMdyToYmdUsingCarbon($data['due_date']);
 		}
 		
 		$serviceIds =  explode(',',$data['service_id']);
@@ -1239,7 +1240,7 @@ class API1Controller extends BaseController
 			'service_id' => implode(',',$serviceIdArray),
 			'patient_code' => $data['patient_code']??"",
 			'diciplin' => $data['diciplin']??"",
-			'language' => $data['language']??"",
+			'language' => Common::getOrCreateLanguageId($data['language']??""),
 			'address1' => $data['address1']??"",
 			'address2' => $data['address2']??"",
 			'state' => $data['state']??"",
@@ -1442,23 +1443,23 @@ class API1Controller extends BaseController
          
 			$age = NULL;
 			if (isset($sendResponseData['dob']) && $sendResponseData['dob'] != '') {
-				$age = date('Y-m-d', strtotime($sendResponseData['dob']));
+				$age = Utility::convertMdyToYmdUsingCarbon($sendResponseData['dob']);
 			}
 			$fuDate =NULL;
 			
 			if (isset($sendResponseData['fu_date']) && $sendResponseData['fu_date'] != '') {
-				$fuDate = date('Y-m-d', strtotime($sendResponseData['fu_date']));
+				$fuDate = Utility::convertMdyToYmdUsingCarbon($sendResponseData['fu_date']);
 			}
 			$dueDate = NULL;
 			
 			if (isset($sendResponseData['due_date']) && $sendResponseData['due_date'] != '') {
-				$dueDate = date('Y-m-d', strtotime($sendResponseData['due_date']));
+				$dueDate = Utility::convertMdyToYmdUsingCarbon($sendResponseData['due_date']);
 			}
 			
 			$service_start_date = NULL;
 			
 			if (isset($sendResponseData['service_start_date']) && $sendResponseData['service_start_date'] != '') {
-				$service_start_date = date('Y-m-d', strtotime($sendResponseData['service_start_date']));
+				$service_start_date = Utility::convertMdyToYmdUsingCarbon($sendResponseData['service_start_date']);
 			}
 			
 			$serviceIds =  explode(',',$sendResponseData['service_id']);
@@ -1491,7 +1492,7 @@ class API1Controller extends BaseController
 				'service_id' => implode(',',$serviceIdArray),
 				'patient_code' => $sendResponseData['patient_code'],
 				'diciplin' =>$sendResponseData['diciplin'],
-				'language' =>$sendResponseData['language'],
+				'language' =>Common::getOrCreateLanguageId($sendResponseData['language']),
 				'address1' =>$sendResponseData['address1'],
 				'address2' =>$sendResponseData['address2'],
 				'state' =>$sendResponseData['state'],
@@ -1768,7 +1769,7 @@ class API1Controller extends BaseController
 			return response()->json(['error_msg' => $validator->errors()->all()[0], 'status' => 0, 'data' => array()], 422);
 		} else {
 			
-			$getExistingPatientDetails = $this->patientService->checkForThirdPartyExistingData($sendResponseData,$checkToken->agency_id);
+			$getExistingPatientDetails = $this->patientService->checkForThirdPartyExistingDataApi($sendResponseData,$checkToken->agency_id);
 			$patientId = "";
 			$created_by = env('API_USER_ID');
 			$link_third_party = "";
@@ -1865,7 +1866,7 @@ class API1Controller extends BaseController
 				'service_id' => implode(',',$serviceIdArray),
 				'patient_code' => $sendResponseData['patient_code'],
 				'diciplin' =>$sendResponseData['diciplin'],
-				'language' =>$sendResponseData['language'],
+				'language' =>Common::getOrCreateLanguageId($sendResponseData['language']),
 				'address1' =>$sendResponseData['address1'],
 				'address2' =>$sendResponseData['address2'],
 				'state' =>$sendResponseData['state'],
@@ -2061,10 +2062,10 @@ class API1Controller extends BaseController
 
                
 				if(strtolower($request->type) =='caregiver'){
-					$email = ['vishaldpatel.vhits@gmail.com','developer@nybestmedical.com'];
-					//$email = ['jromero@nybestmedical.com','developer@nybestmedical.com'];
+					
+					$email = ['jromero@nybestmedical.com','developer@nybestmedical.com'];
 				}else{
-					//$email = ['tiline@nybestmedical.com','developer@nybestmedical.com'];
+					$email = ['tiline@nybestmedical.com','developer@nybestmedical.com'];
 				}
 
 				$getUserDetails = User::getDetailsById($created_by);

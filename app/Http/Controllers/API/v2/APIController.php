@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\API\V2;
+namespace App\Http\Controllers\API\v2;
 
 use App\Agency;
 use Illuminate\Http\Request;
@@ -30,6 +30,7 @@ use App\Services\DocumentUploadService;
 use App\Services\PatientServicesRequest;
 use App\Services\SiteSettingServices;
 use App\Helpers\Utility;
+use App\Helpers\Common;
 use Illuminate\Support\Facades\Mail;
 use App\Services\EmmacareWebhookService;
 use App\Services\InsuranceMasterService;
@@ -41,6 +42,7 @@ use Exception;
 use App\Services\SendRNPadDocumentService;
 use App\Services\PatientV2Service;
 use App\Services\ThirdPartyPatientMasterDocumentDataService;
+use App\Services\AgencyWiseServiceService;
 
 class APIController extends BaseController
 {
@@ -59,8 +61,8 @@ class APIController extends BaseController
 	protected $sendRNPadDocumentService;
 	protected $patientV2Service;
 	protected $thirdPartyPatientMasterDocumentDataService;
-
-	public function __construct(PatientService $patientService, DocumentPatientService $documentPatientService, DoctorService $doctorService,LocationMasterService $locationMasterService,ThirdPartyPatientMasterService $thirdPartyPatientMaster,DocumentUploadService $documentUploadService,PatientServicesRequest $patientServicesRequest,SiteSettingServices $siteSettingService,EmmacareWebhookService $emmacareWebhookService,InsuranceMasterService $insuranceMasterService,PatientWiseServicesRequests $patientWiseServiceRequests,SendRNPadDocumentService $sendRNPadDocumentService,PatientV2Service $patientV2Service, ThirdPartyPatientMasterDocumentDataService $thirdPartyPatientMasterDocumentDataService)
+	protected $agencyWiseServiceService="";
+	public function __construct(PatientService $patientService, DocumentPatientService $documentPatientService, DoctorService $doctorService,LocationMasterService $locationMasterService,ThirdPartyPatientMasterService $thirdPartyPatientMaster,DocumentUploadService $documentUploadService,PatientServicesRequest $patientServicesRequest,SiteSettingServices $siteSettingService,EmmacareWebhookService $emmacareWebhookService,InsuranceMasterService $insuranceMasterService,PatientWiseServicesRequests $patientWiseServiceRequests,SendRNPadDocumentService $sendRNPadDocumentService,PatientV2Service $patientV2Service, ThirdPartyPatientMasterDocumentDataService $thirdPartyPatientMasterDocumentDataService,AgencyWiseServiceService $agencyWiseServiceService)
 	{
 
 		$this->patientService = $patientService;
@@ -77,6 +79,7 @@ class APIController extends BaseController
 		$this->sendRNPadDocumentService = $sendRNPadDocumentService;
 		$this->patientV2Service = $patientV2Service;
 		$this->thirdPartyPatientMasterDocumentDataService = $thirdPartyPatientMasterDocumentDataService;
+		$this->agencyWiseServiceService	=$agencyWiseServiceService;
 	}
 
 	function app_tarce($apiKey)
@@ -129,11 +132,7 @@ class APIController extends BaseController
 		}
 
 		$response = self::checkBlockIPAddress($checkToken->ip_block);
-		// if($response ==0){
-		// 	return response()->json(['error_msg' => "Your IP Address is Blocked.", 'status' => 0, 'data' => array()], $this->successStatus);
-		// 	die();
-		// }
-
+		
 		self::app_tarce($header);
 		self::saveTokenWiseApiCall($checkToken->id);
 		
@@ -147,10 +146,9 @@ class APIController extends BaseController
 			$assign_fname = '';
 			$assign_lname = '';
 			$temp = [];
-			//$query = $this->patientService->getPatientDetailsById($pt->patient_id,$checkToken->agency_id);
 
 			$status = $pt->status;
-			//$temp = $pt;
+
             $getServiceRequestStatus = $this->patientServicesRequest->getDetailsById($pt->requested_service_id);
 			
 			if($pt->flag ==1){
@@ -238,7 +236,7 @@ class APIController extends BaseController
 
 	public function getDocumentList(Request $request)
 	{
-	
+
 		$header = $request->header('authorization');
 		$checkToken = GenerateAgencyTokenHelper::checkToken($header);
 		if (empty($checkToken)) {
@@ -262,8 +260,11 @@ class APIController extends BaseController
 		if(isset($getPatientDetails->patient_id)){
 			$query = $this->patientService->getPatientDetailsById($getPatientDetails->patient_id,$checkToken->agency_id);
             $finalDocumentListArray =[];
+			
 			if (isset($query->id)) {
+
 				$documentList = $this->documentPatientService->getAllDocumentListByServiceRequest($query->id,$getPatientDetails->requested_service_id);
+				
 				$docid = [];
 				if(!empty($documentList[0])){
 					foreach($documentList as $val){
@@ -295,7 +296,7 @@ class APIController extends BaseController
 						$docid[] = $val->id;
 					}
 				}
-
+				
 				$thirdPartyDocs = $this->getThirdPartyDocumentData($id,$getPatientDetails->patient_id,$docid);
 				$finalDocumentListArray = array_merge($finalDocumentListArray,$thirdPartyDocs);
 				return response()->json(['success' => "data", 'status' => 1, 'data' => $finalDocumentListArray], $this->successStatus);
@@ -330,8 +331,22 @@ class APIController extends BaseController
 		self::app_tarce($header);
 		self::saveTokenWiseApiCall($checkToken->id);
 
-		$serviceLists = Master::getServiceRequestNew("Caregiver");
-		$serviceListn = Master::getServiceRequestNew("Patient");
+		$query  =$this->agencyWiseServiceService->serviceListNewWithoutNyBestUserAPI("Caregiver",$checkToken->agency_id);
+
+		if(!empty($query[0])){
+			$serviceLists = $query;
+		}else{
+			$serviceLists = Master::getServiceRequestNewApi("Caregiver");
+		}
+
+		$servicePatients  =$this->agencyWiseServiceService->serviceListNewWithoutNyBestUserAPI("Patient",$checkToken->agency_id);
+
+		if(!empty($servicePatients[0])){
+			$serviceListn = $servicePatients;
+		}else{
+			$serviceListn = Master::getServiceRequestNewApi("Patient");
+		}
+		
 		$serviceList = array_merge($serviceLists->toArray(), $serviceListn->toArray());
 
 		$temparray = array();
@@ -356,283 +371,306 @@ class APIController extends BaseController
 
 	public function addPatient(Request $request)
 	{
-	
-		$header = $request->header('authorization');
+
+	try {
 		
-		$checkToken = GenerateAgencyTokenHelper::checkToken($header);
-	
-		if (empty($checkToken)) {
+			$header = $request->header('authorization');
+			
+			$checkToken = GenerateAgencyTokenHelper::checkToken($header);
 		
-			return response()->json(['error_msg' => "Invalid token.", 'status' => 0, 'data' => array()], $this->successStatus);
-			die();
-		}
-
-		$response = self::checkBlockIPAddress($checkToken->ip_block);
-		if($response ==0){
-			return response()->json(['error_msg' => "Your IP Address is Blocked.", 'status' => 0, 'data' => array()], $this->successStatus);
-			die();
-		}
-
-		self::app_tarce($header);
-		self::saveTokenWiseApiCall($checkToken->id);
-
-		$validator = Validator::make($request->all(), [
-			'first_name' => 'required',
-			'type' => 'required',
-			'last_name' => 'required',
-			'mobile' => 'required|numeric|digits_between:10,15',
-			'service_id' => 'required',
-			'dob' => 'required',
-			// 'insurance_id' => 'required',
-			// 'insurance_name' => 'required',
+			if (empty($checkToken)) {
 			
-		]);
-		if ($validator->fails()) {
-	
-			return response()->json(['error_msg' => $validator->errors()->all()[0], 'status' => 0, 'data' => array()], 422);
-		} else {
-			
-			$getExistingPatientDetails = $this->patientService->checkForThirdPartyExistingDataApi($request->all(),$checkToken->agency_id);
-			
-			$patientId = "";
-			$created_by = env('API_USER_ID');
-
-			$link_third_party = "";
-			if(isset($getExistingPatientDetails->id)){
-				$patientId = $getExistingPatientDetails->id;
-				$link_third_party = $getExistingPatientDetails->link_third_party;
-				$flag = 0;
-			}else{
-				$allDataSaveAppointment = $request->all();
-				$allDataSaveAppointment['token_id'] = $checkToken->id;
-				$allDataSaveAppointment['agency_id'] = $checkToken->agency_id;
-				$patientId = $this->createNewPatient($allDataSaveAppointment);
-				$flag = 1;
+				return response()->json(['error_msg' => "Invalid token.", 'status' => 0, 'data' => array()], $this->successStatus);
+				die();
 			}
 
-			$age = NULL;
-			if (isset($request->dob) && $request->dob != '') {
-				//$age = date('Y-m-d', strtotime($request->dob));
-				$age = Utility::convertMdyToYmdUsingCarbon($request->dob);
+			$response = self::checkBlockIPAddress($checkToken->ip_block);
+			if($response ==0){
+				return response()->json(['error_msg' => "Your IP Address is Blocked.", 'status' => 0, 'data' => array()], $this->successStatus);
+				die();
 			}
-			$fuDate =NULL;
-			if (isset($request->fu_date) && $request->fu_date != '') {
-				//$fuDate = date('Y-m-d', strtotime($request->fu_date));
-				$fuDate = Utility::convertMdyToYmdUsingCarbon($request->fu_date);
-			}
-			$dueDate = NULL;
-			if (isset($request->due_date) && $request->due_date != '') {
+
+			self::app_tarce_save($header,$request->all());
+			self::saveTokenWiseApiCall($checkToken->id);
+
+			$validator = Validator::make($request->all(), [
+				'first_name' => 'required',
+				'type' => 'required',
+				'last_name' => 'required',
+				'mobile' => 'required|numeric|digits_between:10,15',
+				'service_id' => 'required',
+				'dob' => 'required'
+			]);
+			if ($validator->fails()) {
+		
+				return response()->json(['error_msg' => $validator->errors()->all()[0], 'status' => 0, 'data' => array()], 422);
+			} else {
 				
-				// $dueDate = date('Y-m-d', strtotime($request->due_date));
-				$dueDate = Utility::convertMdyToYmdUsingCarbon($request->due_date);
-			}
-			
-			$service_start_date = NULL;
-			if (isset($request->service_start_date) && $request->service_start_date != '') {
-				$service_start_date = date('Y-m-d', strtotime($request->service_start_date));
-			}
+				$getExistingPatientDetails = $this->patientService->checkForThirdPartyExistingDataApi($request->all(),$checkToken->agency_id);
+				
+				$patientId = "";
+				$created_by = env('API_USER_ID');
 
-			$serviceIds =  explode(',',$request->service_id);
-			$serviceIdArray = [];
-			$invalidServiceIds = [];
-			if(!empty($serviceIds[0])){
-				foreach($serviceIds as $st){
-					$details = Master::where('id',$st)->where('master_type_fk',11)->where('del_flag','N')->where(DB::raw('LOWER(types)'), strtolower($request->type))->first();
-					if(isset($details->id) && $details->id !=""){
-						$serviceIdArray[] = $st;
+				$link_third_party = "";
+				if(isset($getExistingPatientDetails->id)){
+					$patientId = $getExistingPatientDetails->id;
+					$link_third_party = $getExistingPatientDetails->link_third_party;
+					$flag = 0;
+				}else{
+					$allDataSaveAppointment = $request->all();
+					$allDataSaveAppointment['token_id'] = $checkToken->id;
+					$allDataSaveAppointment['agency_id'] = $checkToken->agency_id;
+					$patientId = $this->createNewPatient($allDataSaveAppointment);
+					$flag = 1;
+				}
+
+				$age = NULL;
+				if (isset($request->dob) && $request->dob != '') {
+					$age = Utility::convertMdyToYmdUsingCarbon($request->dob);
+				}
+				$fuDate =NULL;
+				if (isset($request->fu_date) && $request->fu_date != '') {
+					$fuDate = Utility::convertMdyToYmdUsingCarbon($request->fu_date);
+				}
+				$dueDate = NULL;
+				if (isset($request->due_date) && $request->due_date != '') {
+					$dueDate = Utility::convertMdyToYmdUsingCarbon($request->due_date);
+				}
+				
+				$service_start_date = NULL;
+				if (isset($request->service_start_date) && $request->service_start_date != '') {
+					$service_start_date = date('Y-m-d', strtotime($request->service_start_date));
+				}
+
+				$serviceIds =  explode(',',$request->service_id);
+				$serviceIdArray = [];
+				$invalidServiceIds = [];
+				if(!empty($serviceIds[0])){
+					foreach($serviceIds as $st){
+						$details = Master::where('id',$st)->where('master_type_fk',11)->where('del_flag','N')->where(DB::raw('LOWER(types)'), strtolower($request->type))->first();
+						if(isset($details->id) && $details->id !=""){
+							$serviceIdArray[] = $st;
+						}
 					}
 				}
-			}
-			
-			if(count($serviceIdArray) == 0){
-				return response()->json(['error_msg' => "Sorry, we couldn’t locate the service you requested.", 'status' => 0, 'data' => array()], 422);
-			}
-			$data = array(
-				'patient_id' => $patientId,
-				'first_name' => $request->first_name,
-				'middle_name' =>  $request->middle_name,
-				'last_name' =>  $request->last_name,
-				'type' =>  $request->type,
-				'dob' => $age,
-				'fu_date' =>$fuDate,
-				'due_date' => $dueDate,
-				'phone' => $request->phone,
-				'mobile' => $request->mobile,
-				'agency_id' =>$checkToken->agency_id,
-				'gender' => $request->gender,
-				'remarks' => $request->message,
-				'service_id' => implode(',',$serviceIdArray),
-				'patient_code' => $request->patient_code,
-				'diciplin' => $request->diciplin,
-				'language' => $request->language,
-				'address1' => $request->address1,
-				'address2' => $request->address2,
-				'state' => $request->state,
-				'city' => $request->city,
-				'zip_code' => $request->zipcode,
-				'county' => $request->country,
-				'payment_type' => $request->payment_type,
-				'platform_type' => $request->platform_type,
-				'platform_id' => $request->platform_id,
-				'created_date'=>date('Y-m-d H:i:s'),
-				'partner_agency'=>$request->partner_agency,
-				'agency_token_id'=>$checkToken->id,
-				'third_party_priority'=>$request->priority,
-				'cin' => $request->cin,
-				'ssn' => str_replace('-','',$request->ssn),
-				'emergency_contact_name' => $request->emergency_contact_name,
-				'emergency_phone' => $request->emergency_contact_number,
-				'insurance_id' => $request->insurance_id,
-				'insurance_name' => $request->insurance_name,
-				'created_by' => $created_by,
-				'service_start_date' => $service_start_date,
-			);
-		
-			if($request->insurance_name =='other'){
-				$data['other_insurance_name'] = $request->other_insurance_name;
 				
-			}
-			if($request->type == 'Patient'){
-				$data['status'] = Utility::getStatusFromServiceId($serviceIdArray);
-			}
-			if(isset($request->callback)){
-				$data['third_party_callback_url'] = $request->callback??"";
-			}
-			$insert = new ThirdPartyPatientMaster($data);
-			$insert->save();
-			$insertId = $insert->id;
+				if(count($serviceIdArray) == 0){
+					return response()->json(['error_msg' => "Sorry, we couldn’t locate the service you requested.", 'status' => 0, 'data' => array()], 422);
+				}
+				$data = array(
+					'patient_id' => $patientId,
+					'first_name' => $request->first_name,
+					'middle_name' =>  $request->middle_name,
+					'last_name' =>  $request->last_name,
+					'type' =>  $request->type,
+					'dob' => $age,
+					'fu_date' =>$fuDate,
+					'due_date' => $dueDate,
+					'phone' => $request->phone,
+					'mobile' => $request->mobile,
+					'agency_id' =>$checkToken->agency_id,
+					'gender' => $request->gender,
+					'remarks' => $request->message,
+					'service_id' => implode(',',$serviceIdArray),
+					'patient_code' => $request->patient_code,
+					'diciplin' => $request->diciplin,
+					'language' => Common::getOrCreateLanguageId($request->language),
+					'address1' => $request->address1,
+					'address2' => $request->address2,
+					'state' => $request->state,
+					'city' => $request->city,
+					'zip_code' => $request->zipcode,
+					'county' => $request->country,
+					'payment_type' => $request->payment_type,
+					'platform_type' => $request->platform_type,
+					'platform_id' => $request->platform_id,
+					'created_date'=>date('Y-m-d H:i:s'),
+					'partner_agency'=>$request->partner_agency,
+					'agency_token_id'=>$checkToken->id,
+					'third_party_priority'=>$request->priority,
+					'cin' => $request->cin,
+					'ssn' => str_replace('-','',$request->ssn),
+					'emergency_contact_name' => $request->emergency_contact_name,
+					'emergency_phone' => $request->emergency_contact_number,
+					'insurance_id' => $request->insurance_id,
+					'insurance_name' => $request->insurance_name,
+					'created_by' => $created_by,
+					'service_start_date' => $service_start_date,
+				);
 			
-			if ($insertId) {
-				$serviceRequestStatus = 'Pending';
+				if($request->insurance_name =='other'){
+					$data['other_insurance_name'] = $request->other_insurance_name;
+					
+				}
 				if($request->type == 'Patient'){
-					$serviceRequestStatus = $data['status'];
+					$data['status'] = Utility::getStatusFromServiceId($serviceIdArray);
 				}
-				if($patientId !=""){
-					Patient::where('id',$patientId)->update(array('status'=>$serviceRequestStatus));
-					if($link_third_party ==""){
-						Patient::where('id',$patientId)->update(array('link_third_party'=>$insertId));
+				if(isset($request->callback)){
+					$data['third_party_callback_url'] = $request->callback??"";
+				}
+				$insert = new ThirdPartyPatientMaster($data);
+				$insert->save();
+				$insertId = $insert->id;
+				
+				if ($insertId) {
+					$serviceRequestStatus = 'Pending';
+					if($request->type == 'Patient'){
+						$serviceRequestStatus = $data['status'];
 					}
+					if($patientId !=""){
+						Patient::where('id',$patientId)->update(array('status'=>$serviceRequestStatus));
+						if($link_third_party ==""){
+							Patient::where('id',$patientId)->update(array('link_third_party'=>$insertId));
+						}
 
-					if($flag ==0){
-						$patientServiceCount = $this->patientServicesRequest->getServiceCountPatientId($patientId);
-						if (count($patientServiceCount) == 0) {
-							$services = explode(',', $getExistingPatientDetails->service_id);
-							if (!empty($services[0])) {
-								$patientServiceLastId = $this->patientServicesRequest->save([
-									'patient_id' => $getExistingPatientDetails->id,
-									'follow_up_date' => $getExistingPatientDetails->fu_date,
-									'due_date' => $getExistingPatientDetails->due_date,
-									'status' => $getExistingPatientDetails->status,
-									'created_at' => $getExistingPatientDetails->created_date,
-									'created_by' =>$created_by,
-									'completed_date' => $getExistingPatientDetails->completed_date,
-									'completed_by' => $getExistingPatientDetails->completed_by,
-									'flag' => 1,
-									'from_api' => 1
-								]);
-								foreach ($services as $serviceId) {
-									$patientWiseServiceRequest = [
+						if($flag ==0){
+							$patientServiceCount = $this->patientServicesRequest->getServiceCountPatientId($patientId);
+							if (count($patientServiceCount) == 0) {
+								$services = explode(',', $getExistingPatientDetails->service_id);
+								if (!empty($services[0])) {
+									$patientServiceLastId = $this->patientServicesRequest->save([
 										'patient_id' => $getExistingPatientDetails->id,
-										'service_id' => $serviceId,
-										'patient_service_request_id' => $patientServiceLastId,
-										'created_date' =>$getExistingPatientDetails->created_date,
+										'follow_up_date' => $getExistingPatientDetails->fu_date,
+										'due_date' => $getExistingPatientDetails->due_date,
+										'status' => $getExistingPatientDetails->status,
+										'created_at' => $getExistingPatientDetails->created_date,
 										'created_by' =>$created_by,
-									];
-									$saveServices = new PatientWiseServiceRequest($patientWiseServiceRequest);
-									$saveServices->save();
+										'completed_date' => $getExistingPatientDetails->completed_date,
+										'completed_by' => $getExistingPatientDetails->completed_by,
+										'flag' => 1,
+										'from_api' => 1
+									]);
+									foreach ($services as $serviceId) {
+										$patientWiseServiceRequest = [
+											'patient_id' => $getExistingPatientDetails->id,
+											'service_id' => $serviceId,
+											'patient_service_request_id' => $patientServiceLastId,
+											'created_date' =>$getExistingPatientDetails->created_date,
+											'created_by' =>$created_by,
+										];
+										$saveServices = new PatientWiseServiceRequest($patientWiseServiceRequest);
+										$saveServices->save();
+									}
 								}
 							}
 						}
-					}
-					
-					$patientServiceLast = new PatientServiceRequest([
-						'patient_id' => $patientId,
-						'from_api'=>1,
-						'created_at'=>date('Y-m-d H:i:s'),
-						'created_by'=>$created_by,
-						'follow_up_date'=>$fuDate,
-						'due_date'=>$dueDate,
-						'status' => $serviceRequestStatus
-					]);
-
-					$patientServiceLast->save();
-					$patientServiceLastId = $patientServiceLast->id;
-				
-					foreach ($serviceIdArray as $serviceId) {
-						$patientWiseServiceRequest = [
-							'patient_id' => $patientId,
-							'service_id' => $serviceId,
-							'patient_service_request_id' => $patientServiceLastId,
-							'created_date'=>date('Y-m-d H:i:s'),
-							'created_by'=>$created_by,
-						];
 						
-						$saveServices = new PatientWiseServiceRequest($patientWiseServiceRequest);
-						$saveServices->save();
-					}
+						$patientServiceLast = new PatientServiceRequest([
+							'patient_id' => $patientId,
+							'from_api'=>1,
+							'created_at'=>date('Y-m-d H:i:s'),
+							'created_by'=>$created_by,
+							'follow_up_date'=>$fuDate,
+							'due_date'=>$dueDate,
+							'status' => $serviceRequestStatus
+						]);
 
-					ThirdPartyPatientMaster::where('id',$insertId)->update(array('requested_service_id'=>$patientServiceLastId));
+						$patientServiceLast->save();
+						$patientServiceLastId = $patientServiceLast->id;
 					
-					if($flag ==0){
-						Patient::where('id',$getExistingPatientDetails->id)->update(array('status'=>$serviceRequestStatus,'fu_date'=>$fuDate,'due_date'=>$dueDate,'service_id'=>implode(',',$serviceIdArray)));
-					}
-				}
+						foreach ($serviceIdArray as $serviceId) {
+							$patientWiseServiceRequest = [
+								'patient_id' => $patientId,
+								'service_id' => $serviceId,
+								'patient_service_request_id' => $patientServiceLastId,
+								'created_date'=>date('Y-m-d H:i:s'),
+								'created_by'=>$created_by,
+							];
+							
+							$saveServices = new PatientWiseServiceRequest($patientWiseServiceRequest);
+							$saveServices->save();
+						}
 
-				$insertLog = [
-					'type' => 'Add Appointment',
-					'link' => url('/patient/add'),
-					'module' => 'Patient Appointment',
-					'object_id' => $insertId,
-					'message' => 'Third Party created a appointment',
-					'new_response' => serialize($request->all()),
+						ThirdPartyPatientMaster::where('id',$insertId)->update(array('requested_service_id'=>$patientServiceLastId));
+						
+						if($flag ==0){
+							Patient::where('id',$getExistingPatientDetails->id)->update(array('status'=>$serviceRequestStatus,'fu_date'=>$fuDate,'due_date'=>$dueDate,'service_id'=>implode(',',$serviceIdArray)));
+						}
+					}
+
+					$insertLog = [
+						'type' => 'Add Appointment',
+						'link' => url('/patient/add'),
+						'module' => 'Patient Appointment',
+						'object_id' => $insertId,
+						'message' => 'Third Party created a appointment',
+						'new_response' => serialize($request->all()),
+						'created_by'=>env('API_USER_ID')
+					];
+					LogsService::save($insertLog);
+
+					$insertLog1 = [
+						'type' => 'Add Appointment',
+						'link' => url('/patient/add'),
+						'module' => 'Patient Appointment',
+						'object_id' => $patientId,
+						'message' => 'Third Party created a appointent',
+						'new_response' => serialize($request->all()),
+						'created_by'=>env('API_USER_ID')
+					];
+					LogsService::save($insertLog1);
+					if($checkToken->agency_id !=2){
+						if(strtolower($request->type) =='caregiver'){
+							$email = ['jromero@nybestmedical.com','developer@nybestmedical.com'];
+						}else{
+							$email = ['tiline@nybestmedical.com','developer@nybestmedical.com'];
+						}
+					}else{
+						$email = ['vishal.dev@nybestmedical.com','nidhi.qa@nybestmedical.com'];
+					}
 					
-				];
-				LogsService::save($insertLog);
-				if(strtolower($request->type) =='caregiver'){
-					$email = ['jromero@nybestmedical.com','developer@nybestmedical.com'];
-				}else{
-					$email = ['tiline@nybestmedical.com','developer@nybestmedical.com'];
-				}
 
-				$getUserDetails = User::getDetailsById($created_by);
-				$fname = isset($getUserDetails->first_name)?$getUserDetails->first_name:"";
-				$lname = isset($getUserDetails->last_name)?$getUserDetails->last_name:"";
+					$getUserDetails = User::getDetailsByIdV2($created_by);
+					$fname = isset($getUserDetails->first_name)?$getUserDetails->first_name:"";
+					$lname = isset($getUserDetails->last_name)?$getUserDetails->last_name:"";
 
-				$agencyDetails = Agency::getAllDetailsbyAgencyId($checkToken->agency_id);
-				$agencyname = isset($agencyDetails->agency_name)?$agencyDetails->agency_name:"";
-				$email_data = array(
-					'username' => $fname.' '.$lname,
-					'agencyname' => $agencyname,
-					'insert' => $patientId,
-					'first_name' => $request->first_name,
-					'last_name' => $request->last_name,
-					'dob' => $request->dob,
-					'mobile' => $request->mobile,
-					'gender' => $request->gender,
-					'discipline' => $request->diciplin,
-					'type' => $request->type,
-				);
-				$messages = Utility::getHtmlContent('email_template.email_create_patient_new', $email_data);
-				$subject = "[" . $agencyname . "] NYBest Medical Care New record added";
-				try {
-					$mail = Mail::mailer('second')->send([], [], function ($message) use ($email, $subject, $messages) {
-						$message->to($email, "Ny Best Medicals")
-							->subject($subject)->setBody($messages, 'text/html');
-					});
-				} catch (\Throwable $th) {
-					//throw $th;
-				}
-				if($request->type == 'Patient'){
-					try{
-						Utility::saveResolutionLogForms($serviceRequestStatus,$patientServiceLastId,$patientId);
-					}catch(Exception $e){
-
+					$agencyDetails = Agency::getAllDetailsbyAgencyId($checkToken->agency_id);
+					$agencyname = isset($agencyDetails->agency_name)?$agencyDetails->agency_name:"";
+					$email_data = array(
+						'username' => $fname.' '.$lname,
+						'agencyname' => $agencyname,
+						'insert' => $patientId,
+						'first_name' => $request->first_name,
+						'last_name' => $request->last_name,
+						'dob' => $request->dob,
+						'mobile' => $request->mobile,
+						'gender' => $request->gender,
+						'discipline' => $request->diciplin,
+						'type' => $request->type,
+					);
+					$messages = Utility::getHtmlContent('email_template.email_create_patient_new', $email_data);
+					$subject = "[" . $agencyname . "] NYBest Medical Care New record added";
+					try {
+						if($checkToken->agency_id != 2){
+							$mail = Mail::mailer('second')->send([], [], function ($message) use ($email, $subject, $messages) {
+								$message->to($email, "Ny Best Medicals")
+									->subject($subject)->html($messages);
+							});
+						}
+					} catch (\Throwable $th) {
+						//throw $th;
 					}
+					if($request->type == 'Patient'){
+						try{
+							Utility::saveResolutionLogFormsAPI($serviceRequestStatus,$patientServiceLastId,$patientId);
+						}catch(Exception $e){
+
+						}
+					}
+					return response()->json(['error_msg' => "Success", 'status' => 1, 'data' => array(array('appoinment_id' => $insertId))], 200);
+				} else {
+					return response()->json(['error_msg' => 'Sorry, something went wrong. Please try again.', 'status' => 0, 'data' => array()], 500);
 				}
-				return response()->json(['error_msg' => "Success", 'status' => 1, 'data' => array(array('appoinment_id' => $insertId))], 200);
-			} else {
-				return response()->json(['error_msg' => 'Sorry, something went wrong. Please try again.', 'status' => 0, 'data' => array()], 500);
 			}
+		} catch (\Exception $e) {
+
+			Log::error('Add Patient API Error', [
+				'message' => $e->getMessage(),
+				'line' => $e->getLine(),
+				'file' => $e->getFile(),
+				'request' => $request->all()
+			]);
+
 		}
 	}
 
@@ -722,11 +760,12 @@ class APIController extends BaseController
 		self::saveTokenWiseApiCall($checkToken->id);
 
 		$final_arra1= [];
-		$valueArray = ['HHA','CDPAP','RN','LPN','Pre-HHA','Pre-CDPAP','OTHER'];
-		foreach($valueArray as $val){
+
+		$masterDataDiscipline = Master::getAllDataByMasterTypeFkV2(array(26));
+		foreach($masterDataDiscipline as $val){
 			$temparray = [];
-			$temparray['id']=$val;
-			$temparray['value']=$val;
+			$temparray['id']=$val->name;
+			$temparray['value']=$val->name;
 			$final_arra1[] = $temparray;
 		}
 	
@@ -750,7 +789,7 @@ class APIController extends BaseController
 		self::app_tarce($header);
 		self::saveTokenWiseApiCall($checkToken->id);
 
-		$serviceLists = Master::getAllDataByMasterTypeFk(array(17));
+		$serviceLists = Master::getAllDataByMasterTypeFkV2(array(17));
 	
 		return response()->json(['success' => "data", 'status' => 1, 'data' => $serviceLists], $this->successStatus);
 	}
@@ -781,7 +820,7 @@ class APIController extends BaseController
 
 				$record = $getPatientDetails;
 				$asing = isset($records->assign_user_id)?$records->assign_user_id:"";
-				$getAssignNyUser = User::getDetailsById($asing);
+				$getAssignNyUser = User::getDetailsByIdV2($asing);
 				$afname = '';
 				$alname = '';
 				$record->assign_user = '';
@@ -794,7 +833,7 @@ class APIController extends BaseController
 				}
 	
 				if ($record->created_by != '') {
-					$getUserDetails = User::getDetailsById($record->created_by);
+					$getUserDetails = User::getDetailsByIdV2($record->created_by);
 				}
 				$fname = '';
 				$lname = '';
@@ -831,7 +870,7 @@ class APIController extends BaseController
 	
 				$record->service = $servie;
 				$status = $record->status;
-			//$temp = $pt;
+
             $getServiceRequestStatus = $this->patientServicesRequest->getDetailsById($record->requested_service_id);
 			if($getPatientDetails->flag ==1){
 				$record->status = "Pending";
@@ -841,9 +880,6 @@ class APIController extends BaseController
 				}
 			}
 			
-			// if(isset($getServiceRequestStatus->id)){
-            //     $record->status = $getServiceRequestStatus->status;
-            // }
 			$temp=array();
 			$temp['id'] = $record->id;
             $temp['first_name'] = $record->first_name;
@@ -856,7 +892,7 @@ class APIController extends BaseController
             $temp['phone'] = $record->phone;
             $temp['created_date'] = $record->created_date;
             $temp['agency_id'] = $record->agency_id;
-            // $temp['appointment_date'] = $record->appointment_date;
+
             $temp['service_id'] = $record->service_id;
             $temp['mobile'] = $record->mobile;
             $temp['language'] = $record->language;
@@ -873,13 +909,9 @@ class APIController extends BaseController
             $temp['platform_id'] = $record->platform_id;
             $temp['email'] = $record->email;
             $temp['emergency_phone'] = $record->emergency_phone;
-            // $temp['availability_followup_date'] = $record->availability_followup_date;
+
 			$status = $record->status;
-			//$temp = $pt;
-            // $getServiceRequestStatus = $this->patientServicesRequest->getDetailsById($record->id);
-			// if(isset($getServiceRequestStatus->id)){
-            //     $status = $getServiceRequestStatus->status;
-            // }
+
 			$temp['status'] = $status;
 				
 				return response()->json(['success' => "data", 'status' => 1, 'data' => $temp], $this->successStatus);
@@ -913,7 +945,7 @@ class APIController extends BaseController
 		}else{
 			$ip = $_SERVER['REMOTE_ADDR'];
 		}
-		// echo "<pre>";print_r($ip);die();
+
 		$explode = explode(',',$blockIpAddress);
 		$ipaddress =$ip;
 
@@ -924,10 +956,6 @@ class APIController extends BaseController
 			}
 		}
 		return $flag;
-	}
-
-	public function getDocumentListNew1asdasd(Request $request)
-	{
 	}
 
 	public function documentsServiceList(Request $request){
@@ -1033,7 +1061,7 @@ class APIController extends BaseController
 		$validator = Validator::make($request->all(), [
 			'id' => 'required',
 			'document_name' => 'required',
-			'attachment' => 'required',			
+			'attachment' => 'required',
 		]);
 		if ($validator->fails()) {
 			return response()->json(['error_msg' => $validator->errors()->all()[0], 'status' => 0, 'data' => array()], 422);
@@ -1065,18 +1093,15 @@ class APIController extends BaseController
 					$data['document_completed_date'] = date('Y-m-d',strtotime($request->document_completed_date));
 				}
 
-				$insertId = $this->documentPatientService->saveNew($data);				
+				$insertId = $this->documentPatientService->saveNew($data);
 
 				if(!empty($insertId)){
 					return response()->json(['error_msg' => "Success", 'status' => 1, 'data' => array(array('document_id' => $insertId))], 200);
-					die();
 				}else{
 					return response()->json(['error_msg' => "No record available", 'status' => 0, 'data' => array()], 200);
-					die();
-				}					
+				}
 			}else{
 				return response()->json(['error_msg' => "No record available", 'status' => 0, 'data' => array()], 200);
-					die();
 			}
 		}
 	}
@@ -1122,8 +1147,7 @@ class APIController extends BaseController
 				'new_response' => serialize($request->all()),
 				'created_by'=>env('API_USER_ID')
 			];
-			LogsService::save($insertLog);	
-			// $thirdPartyUserDetails = $this->thirdPartyPatientMaster->getPatientDetails($request->id,$checkToken->agency_id);
+			LogsService::save($insertLog);
 
 			$agencyName = "";
 			if(isset($thirdPartyUserDetails->agencyDetails->agency_name)){
@@ -1146,7 +1170,7 @@ class APIController extends BaseController
 					foreach($explode as $email){
 						$mail = Mail::mailer('second')->send([], [], function ($message) use ($email, $subject, $messages) {
 							$message->to($email, "EMC Rep")
-								->subject($subject)->setBody($messages, 'text/html');
+								->subject($subject)->html($messages);
 							
 							
 						});
@@ -1290,7 +1314,7 @@ class APIController extends BaseController
 			'service_id' => implode(',',$serviceIdArray),
 			'patient_code' => $data['patient_code']??"",
 			'diciplin' => $data['diciplin']??"",
-			'language' => $data['language']??"",
+			'language' => Common::getOrCreateLanguageId($data['language']??""),
 			'address1' => $data['address1']??"",
 			'address2' => $data['address2']??"",
 			'state' => $data['state']??"",
@@ -1430,7 +1454,7 @@ class APIController extends BaseController
 			die();
 		}
 
-		self::app_tarce($header);
+		self::app_tarce_save($header,$request->all());
 		self::saveTokenWiseApiCall($checkToken->id);
 		
 		$sendResponseData1 = $request->all();
@@ -1447,10 +1471,7 @@ class APIController extends BaseController
 			'last_name' => 'required',
 			'mobile' => 'required|numeric|digits_between:10,15',
 			'service_id' => 'required',
-			'dob' => 'required',
-			// 'insurance_id' => 'required',
-			// 'insurance_name' => 'required',
-			
+			'dob' => 'required'
 		]);
 		if ($validator->fails()) {
 	
@@ -1555,7 +1576,7 @@ class APIController extends BaseController
 				'service_id' => implode(',',$serviceIdArray),
 				'patient_code' => $sendResponseData['patient_code'],
 				'diciplin' =>$sendResponseData['diciplin'],
-				'language' =>$sendResponseData['language'],
+				'language' =>Common::getOrCreateLanguageId($sendResponseData['language']),
 				'address1' =>$sendResponseData['address1'],
 				'address2' =>$sendResponseData['address2'],
 				'state' =>$sendResponseData['state'],
@@ -1668,7 +1689,7 @@ class APIController extends BaseController
 				}
 				if(strtolower($sendResponseData['type']) =='patient'){
 					try {
-						Utility::saveResolutionLogForms($statusServiceRequest,$patientServiceLastId,$patientId);
+						Utility::saveResolutionLogFormsAPI($statusServiceRequest,$patientServiceLastId,$patientId);
 					} catch (\Throwable $th) {
 						//throw $th;
 					}
@@ -1687,7 +1708,7 @@ class APIController extends BaseController
 					'object_id' => $insertId,
 					'message' => 'Third Party created a appointent',
 					'new_response' => serialize($sendResponseData),
-					
+					'created_by'=>env('API_USER_ID')
 				];
 				LogsService::save($insertLog);
 
@@ -1698,7 +1719,7 @@ class APIController extends BaseController
 					'object_id' => $patientId,
 					'message' => 'Third Party created a appointent',
 					'new_response' => serialize($sendResponseData),
-					
+					'created_by'=>env('API_USER_ID')
 				];
 				LogsService::save($insertLog1);
 
@@ -1800,14 +1821,17 @@ class APIController extends BaseController
 					]);
                 }
 
-               
-				if(strtolower($sendResponseData['type']) =='caregiver'){
-					$email = ['jromero@nybestmedical.com','developer@nybestmedical.com'];
+				if($checkToken->agency_id !=2){
+					if(strtolower($sendResponseData['type']) =='caregiver'){
+						$email = ['jromero@nybestmedical.com','developer@nybestmedical.com'];
+					}else{
+						$email = ['Muhammadh@nybestmedical.com','developer@nybestmedical.com'];
+					}
 				}else{
-					$email = ['Muhammadh@nybestmedical.com','developer@nybestmedical.com'];
+					$email = ['vishal.dev@nybestmedical.com','nidhi.qa@nybestmedical.com'];
 				}
-
-				$getUserDetails = User::getDetailsById($created_by);
+				
+				$getUserDetails = User::getDetailsByIdV2($created_by);
 				$fname = isset($getUserDetails->first_name)?$getUserDetails->first_name:"";
 				$lname = isset($getUserDetails->last_name)?$getUserDetails->last_name:"";
 
@@ -1830,10 +1854,12 @@ class APIController extends BaseController
 				
 				$subject = "[" . $agencyname . "] ID# ".$patientId." - New MDO request from RNPAD";
 				try {
-					 Mail::mailer('second')->send([], [], function ($message) use ($email, $subject, $messages) {
-						$message->to($email, "Ny Best Medicals")
-							->subject($subject)->setBody($messages, 'text/html');
-					});
+					if($checkToken->agency_id != 2){
+						Mail::mailer('second')->send([], [], function ($message) use ($email, $subject, $messages) {
+							$message->to($email, "Ny Best Medicals")
+								->subject($subject)->html($messages);
+						});
+					}
 				} catch (\Throwable $th) {
 					//throw $th;
 				}
@@ -1878,10 +1904,7 @@ class APIController extends BaseController
 			'last_name' => 'required',
 			'mobile' => 'required|numeric|digits_between:10,15',
 			'service_id' => 'required',
-			'dob' => 'required',
-			// 'insurance_id' => 'required',
-			// 'insurance_name' => 'required',
-			
+			'dob' => 'required'
 		]);
 		if ($validator->fails()) {
 	
@@ -1956,7 +1979,7 @@ class APIController extends BaseController
 				'service_id' => implode(',',$serviceIdArray),
 				'patient_code' => $sendResponseData['patient_code'],
 				'diciplin' =>$sendResponseData['diciplin'],
-				'language' =>$sendResponseData['language'],
+				'language' =>Common::getOrCreateLanguageId($sendResponseData['language']),
 				'address1' =>$sendResponseData['address1'],
 				'address2' =>$sendResponseData['address2'],
 				'state' =>$sendResponseData['state'],
@@ -2068,7 +2091,7 @@ class APIController extends BaseController
 					'new_response' => serialize($sendResponseData),
 					
 				];
-				LogsService::save($insertLog);	
+				LogsService::save($insertLog);
 
 
 				/*************************Document Upload Code Start *************************/
@@ -2077,7 +2100,7 @@ class APIController extends BaseController
 				if ($request->file('file') != '') {
 					$priceImage = $request->file('file');
 					$name = uniqid() . time() . '.' . $priceImage->getClientOriginalExtension();
-					//$destination = public_path('patientdocument');
+
 					$destination1 = public_path('patientdocument');
 					$destination2 = public_path('patientWriteDocument');
 					if (env('FILE_UPLOAD_PERMISSION')  == 'development') {
@@ -2086,7 +2109,6 @@ class APIController extends BaseController
 
 						$image = $name;
 					} else {
-						//$image = $filepath = Storage::disk('s3')->putFileAs('patientdocument', $priceImage, $name);
 						Storage::disk('s3')->putFileAs('patientdocument', $priceImage, $name);
 						Storage::disk('s3')->putFileAs('patientWriteDocument', $priceImage, $name);
 						$image = $name;
@@ -2145,15 +2167,17 @@ class APIController extends BaseController
 					LogsService::save($insertLog);
 				}
 
-
-				if(strtolower($request->type) =='caregiver'){
-					
-					$email = ['jromero@nybestmedical.com','developer@nybestmedical.com'];
+				if($checkToken->agency_id !=2){
+					if(strtolower($request->type) =='caregiver'){
+						$email = ['jromero@nybestmedical.com','developer@nybestmedical.com'];
+					}else{
+						$email = ['tiline@nybestmedical.com','developer@nybestmedical.com'];
+					}
 				}else{
-					$email = ['tiline@nybestmedical.com','developer@nybestmedical.com'];
+					$email = ['vishal.dev@nybestmedical.com','nidhi.qa@nybestmedical.com'];
 				}
-
-				$getUserDetails = User::getDetailsById($created_by);
+				
+				$getUserDetails = User::getDetailsByIdV2($created_by);
 				$fname = isset($getUserDetails->first_name)?$getUserDetails->first_name:"";
 				$lname = isset($getUserDetails->last_name)?$getUserDetails->last_name:"";
 
@@ -2174,10 +2198,12 @@ class APIController extends BaseController
 				$messages = Utility::getHtmlContent('email_template.email_create_patient_new', $email_data);
 				$subject = "[" . $agencyname . "] NYBest Medical Care New record added";
 				try {
-					$mail = Mail::mailer('second')->send([], [], function ($message) use ($email, $subject, $messages) {
-						$message->to($email, "Ny Best Medicals")
-							->subject($subject)->setBody($messages, 'text/html');
-					});
+					if($checkToken->agency_id != 2){
+						$mail = Mail::mailer('second')->send([], [], function ($message) use ($email, $subject, $messages) {
+							$message->to($email, "Ny Best Medicals")
+								->subject($subject)->html($messages);
+						});
+					}
 				} catch (\Throwable $th) {
 					//throw $th;
 				}
@@ -2240,9 +2266,10 @@ class APIController extends BaseController
 							}
 						}
 					}
-					$getUserDetails = User::getDetailsById($val->created_by);
+					$getUserDetails = User::getDetailsByIdV2($val->created_by);
 					$fname = isset($getUserDetails->first_name)?$getUserDetails->first_name:"";
 					$lname = isset($getUserDetails->last_name)?$getUserDetails->last_name:"";
+					
 					$val->created_user_name = $fname.' '.$lname;
 					$val->service_id = implode(',',$serviceArray);
 				}
@@ -2346,7 +2373,7 @@ class APIController extends BaseController
 
 		return $finalDocumentListArray;
 	}
-	
+
 	public function getThirdPartServiceWiseDocData($documents, $serviceId)
 	{
 		foreach ($documents as $key => $document) {
@@ -2366,4 +2393,38 @@ class APIController extends BaseController
 		return array_values($documents); // reindex array
 	}
 
+	function app_tarce_save($apiKey,$data)
+	{
+		$auth = auth()->user();
+		if ($auth) {
+			$user_id = $auth->id;
+		}
+
+
+		$actual_link = "http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+		$ipaddress = $_SERVER['REMOTE_ADDR'];
+		$page = "http://{$_SERVER['HTTP_HOST']}{$_SERVER['PHP_SELF']}";
+		if (!empty($_SERVER['QUERY_STRING'])) {
+			$page = $_SERVER['QUERY_STRING'];
+		} else {
+			$page = "";
+		}
+
+		$user_post_data = json_encode($data);
+		$useragent = $_SERVER['HTTP_USER_AGENT'];
+		$remotehost = @getHostByAddr($ipaddress);
+		$user_info = json_encode(array("Ip" => $ipaddress, "Page" => $page, "UserAgent" => $useragent, "RemoteHost" => $remotehost));
+		$urlPath = parse_url($actual_link, PHP_URL_PATH);
+		$endpoint = basename($urlPath); 
+		$type = ucwords(str_replace('-', ' ', $endpoint));
+	
+		$user_track_data = array("url" => $actual_link,'type'=>$type, 'api_key' => $apiKey, 'ip' => $ipaddress,'response'=>$user_info,'created_date'=>date('Y-m-d H:i:s'),'data'=>$user_post_data);
+
+		$saveLog = new ThirdPartyPatientLog($user_track_data);
+		$saveLog->save();
+	}
+
+	public function tempServer(){
+		return response()->json(['error_msg' => "Success Server IP qqq", 'status' => 0, 'data' => array()], $this->successStatus);
+	}
 }

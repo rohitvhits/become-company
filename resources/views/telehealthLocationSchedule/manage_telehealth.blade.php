@@ -29,18 +29,23 @@
                             <div class="card">
                                 <div class="left-section-main info-tab-sec">
                                     <ul class="nav nav-tabs tabs-left sideways left-section-ul">
-                                        <li class="active"><a href="#slot_management" data-toggle="tab"><i class="mdi mdi-note mr-1"></i> Slot Management</a>
+                                        <li class="active"><a href="#slot_management" data-toggle="tab" data-tab-title="Slot Management"><i class="mdi mdi-note mr-1"></i> Slot Management</a>
                                         </li>
-                                        <li><a href="#nurse_availability" data-toggle="tab"> <i class="fa fa-info-circle mr-1"></i> Nurse Wise Slot Availability</a>
+                                        <li><a href="#nurse_availability" data-toggle="tab" data-tab-title="Nurse Wise Slot Availability"> <i class="fa fa-info-circle mr-1"></i> Nurse Wise Slot Availability</a>
                                         </li>
-                                        <li><a href="#manual_slot_availability" data-toggle="tab"> <i class="mdi mdi-file-document mr-1"></i> Manual Slot Availability</a>
+                                        <li><a href="#manual_slot_availability" data-toggle="tab" data-tab-title="Manual Slot Availability"> <i class="mdi mdi-file-document mr-1"></i> Manual Slot Availability</a>
                                         </li>
-                                        {{-- 
+                                        <li><a href="#time_frame_config" data-toggle="tab" data-tab-title="Time Frame Config"> <i class="fa fa-clock-o mr-1"></i> Time Frame Config</a>
+                                        </li>
+                                        {{--
                                         <li><a href="#patient_manage_tele_slot" data-toggle="tab"> <i class="mdi mdi-file-document mr-1"></i> Manage Patient Slot</a> --}}
                                         </li>
                                     </ul>
                                     <!-- Tab panes -->
                                     <div class="tab-content left-section-tab-content">
+                                        <div class="common-tab-title">
+                                            <h5 id="activeTabTitle"><i class="mdi mdi-note mr-1"></i>Slot Management</h5>
+                                        </div>
                                         <div class="tab-pane active" id="slot_management">
                                             <div class="row">
                                                 <div class="col-lg-12">
@@ -49,9 +54,6 @@
                                                             <div class="box info-box card basic-detail-div">
                                                                 <div class="row">
                                                                     <div class="col-lg-12">
-                                                                        <div class="title">
-                                                                            <h5><i class="mdi mdi-note mr-1"></i>Slot Management</h5>
-                                                                        </div>
                                                                         <div class="">
                                                                             <div class="card common-card-box">
                                                                                 <div class="page-title-main">
@@ -102,9 +104,6 @@
                                                             <div class="box info-box card basic-detail-div">
                                                                 <div class="row">
                                                                     <div class="col-lg-12">
-                                                                        <div class="title">
-                                                                            <h5><i class="mdi mdi-information mr-1"></i>Nurse Wise Slot Availability </h5>
-                                                                        </div>
                                                                         <div class="card common-card-box">
                                                                             <div class="card-body">
 
@@ -205,9 +204,6 @@
                                                             <div class="box info-box card basic-detail-div">
                                                                 <div class="row">
                                                                     <div class="col-lg-12">
-                                                                        <div class="title">
-                                                                            <h5><i class="mdi mdi-file-document mr-1"></i>Manual Slot Availability</h5>
-                                                                        </div>
                                                                         <div class="card common-card-box">
                                                                             <div class="card-body">
                                                                                 <!-- Manual Slot Availability Form -->
@@ -278,6 +274,44 @@
                                                 </div>
                                             </div>
                                         </div>
+                                        <div class="tab-pane" id="time_frame_config">
+                                            <div class="row">
+                                                <div class="col-lg-12">
+                                                    <div class="box info-box card basic-detail-div">
+                                                        <div class="row">
+                                                            <div class="col-lg-12">
+                                                                <div class="card common-card-box">
+                                                                    <div class="card-body">
+                                                                        <p class="text-muted">Set how many hours each booking time frame covers. Patients will choose from these windows when scheduling a telehealth appointment.</p>
+                                                                        <div class="row align-items-end">
+                                                                            <div class="col-md-4">
+                                                                                <div class="form-group">
+                                                                                    <label><strong>Time Frame Duration</strong></label>
+                                                                                    <select class="form-control" id="timeFrameHoursSelect">
+                                                                                        <option value="1" {{ $timeFrameHours == 1 ? 'selected' : '' }}>1 Hour (e.g. 9:00 AM – 10:00 AM)</option>
+                                                                                        <option value="2" {{ $timeFrameHours == 2 ? 'selected' : '' }}>2 Hours (e.g. 9:00 AM – 11:00 AM)</option>
+                                                                                        <option value="3" {{ $timeFrameHours == 3 ? 'selected' : '' }}>3 Hours (e.g. 9:00 AM – 12:00 PM)</option>
+                                                                                    </select>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="col-md-2">
+                                                                                <div class="form-group">
+                                                                                    <button type="button" class="btn btn-primary" id="saveTimeFrameBtn">
+                                                                                        <i class="fa fa-save"></i> Save
+                                                                                    </button>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div id="timeFramePreview" class="mt-3"></div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         {{--
                                         <div class="tab-pane" id="patient_manage_tele_slot">
                                             <div class="row">
@@ -399,6 +433,15 @@
     var UPDATE_NURSE_SCHEDULE = "{{ url('update-nurse-schedule') }}";
     var UPDATE_NURSE_SCHEDULE_DATE = "{{ url('update-nurse-schedule-by-date') }}";
     var UNAVAILABLEDATES = '{{$disable_date}}';
+    var TIME_FRAME_HOURS = {{ $timeFrameHours }};
+    var SAVE_TIME_FRAME_HOURS = "{{ url('save-time-frame-hours') }}";
+</script>
+<script>
+    $(document).on('show.bs.tab', '.left-section-ul a[data-toggle="tab"]', function() {
+        var title = $(this).data('tab-title') || $(this).text().trim();
+        var icon  = $(this).find('i').prop('outerHTML') || '';
+        $('#activeTabTitle').html(icon + title);
+    });
 </script>
 <link rel="stylesheet" href="{{ asset('css/jquery-ui.css')}}">
 <script src="{{ asset('assets/js/jquery-ui.min.js')}}"></script>

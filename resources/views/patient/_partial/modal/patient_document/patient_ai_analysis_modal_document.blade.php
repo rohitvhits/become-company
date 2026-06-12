@@ -1,18 +1,19 @@
 <!-- AI Analysis Result Modal -->
 <div class="modal fade" id="aiAnalysisModal" tabindex="-1" role="dialog" aria-labelledby="aiAnalysisModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl" role="document">
-        <div class="modal-content">
-            <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-                <h5 class="modal-title" id="aiAnalysisModalLabel">
-                    <i class="mdi mdi-robot mr-2"></i>AI Document Analysis
+        <div class="modal-content" style="border-radius:16px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.22);">
+            <div class="modal-header" style="background:linear-gradient(270deg,#e0d7ff,#c8e6ff,#d4f1f9,#e8d5f5,#e0d7ff);background-size:300% 300%;animation:aiGradientMoveBtn 4s ease infinite;border-radius:16px 16px 0 0;">
+                <h5 class="modal-title" id="aiAnalysisModalLabel" style="display:flex;align-items:center;gap:8px;color:#5a3e9e;font-weight:700;font-size:15px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="#5a3e9e"><path d="M12 3c-1.2 5.4-5.4 7.8-9 9 3.6 1.2 7.8 3.6 9 9 1.2-5.4 5.4-7.8 9-9-3.6-1.2-7.8-3.6-9-9z"/><path d="M5 3c-.6 2.7-2.3 3.7-4 4 1.7.3 3.4 1.3 4 4 .6-2.7 2.3-3.7 4-4-1.7-.3-3.4-1.3-4-4z" opacity=".8"/></svg>
+                    AI Document Analysis
                 </h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: white;">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color:#5a3e9e;">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
-                <div id="aiAnalysisLoading" style="text-align:center; padding: 40px 20px;">
-                    <img src="{{ asset('ajax-loader.gif')}}" alt="Analysing..." style="width:48px;height:48px;"><br>
+                <div id="aiAnalysisLoading" style="text-align:center;padding:40px 20px;">
+                    <div style="width:40px;height:40px;border:3px solid #e0dcff;border-top-color:#6c5ce7;border-radius:50%;animation:hmwSpin 0.8s linear infinite;margin:0 auto 12px;"></div>
                     <p class="mt-3 text-muted">Analysing document with AI, please wait...</p>
                 </div>
                 <div id="aiAnalysisResult" style="display:none;">

@@ -9,9 +9,11 @@ use Illuminate\Support\Facades\URL;
 use App\Agency;
 use App\Model\AgencyTeleService;
 use App\Model\AssignNyBestUser;
+use App\Model\Language;
 use App\Model\PatientMobileVerificationLogs;
 use App\Jobs\AgencyNotificationSendJob;
 use App\SiteSetting;
+use Exception;
 
 class Common
 {
@@ -416,6 +418,24 @@ class Common
     return $response;
   }
 
+  public static function getOrCreateLanguageId($languageName)
+  {
+      if (empty(trim((string) $languageName))) {
+          return null;
+      }
+      try{
+        $languages = Language::pluck('id', 'name')->mapWithKeys(fn($id, $name) => [strtolower(trim($name)) => $id])->toArray();
+        $search = strtolower(trim($languageName));
+        return $languages[$search] ?? (is_numeric($languageName) ? $languageName : null);
+      } catch (\Throwable $th) {
+        \Log::error('Language lookup failed.', [
+            'language' => $languageName,
+            'error' => $th->getMessage(),
+        ]);
+        throw $th;
+      }
+  }
+
   public static function getServiceMesgdisable(){
     return ['849']; //Flu Vaccine - 849
   }
@@ -521,3 +541,4 @@ class Common
 
 
 }
+

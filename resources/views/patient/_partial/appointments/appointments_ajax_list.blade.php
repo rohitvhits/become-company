@@ -37,6 +37,8 @@
                             @endif</td>
                         <td>@if(isset($appointment->appointment_time))
                                 {{date('h:i:s A', strtotime($appointment->appointment_time))}}
+                            @elseif(!empty($appointment->telehealth_time_frame))
+                                {{$appointment->telehealth_time_frame}}
                             @elseif(isset($appointment->telehealth_time_slot))
                                 {{$appointment->telehealth_time_slot}}
                             @endif</td>

@@ -64,6 +64,9 @@
 										<th>Created Date</th>
 
 										<th>Status</th>
+										@if($user->agency_fk == "")
+										<th>Action</th>
+										@endif
 
 									</thead>
 									<tbody>
@@ -129,7 +132,7 @@
 																<label class="badge badge-primary">Telehealth Appointment</label>
 																<br/>
 																{{date('m/d/Y', strtotime($rows->telehealth_date_time))}}<br />
-																{{$rows->telehealth_time_slot}} <br/>
+																{{$rows->telehealth_time_frame ?: $rows->telehealth_time_slot}} <br/>
 																Nurse: {{$rows->telehealth_nurse}} <br/>
 															@endif
 														@endif
@@ -145,7 +148,7 @@
 																<label class="badge badge-primary">Telehealth Appointment</label>
 																<br/>
 																{{date('m/d/Y', strtotime($rows->telehealth_date_time))}}<br />
-																{{$rows->telehealth_time_slot}} <br/>
+																{{$rows->telehealth_time_frame ?: $rows->telehealth_time_slot}} <br/>
 																Nurse: {{$rows->telehealth_nurse}} <br/>
 															@endif
 														@endif
@@ -249,6 +252,19 @@
 															<label for="" class='badge badge-danger'>{{ucfirst($rows->status)}}</label>
 														@endif
 													</td>
+													@if($user->agency_fk == "")
+													<td>
+														@if(empty($rows->archived_at))
+															<a title="Archive" href="javascript:void(0)" onclick="getArchiveById({{ $rows->id }})">
+																<i class="fa fa-archive"></i>
+															</a>
+														@else
+															<a title="Unarchive" href="javascript:void(0)" onclick="getUnArchiveById({{ $rows->id }})">
+																<i class="fa fa-file-archive-o"></i>
+															</a>
+														@endif
+													</td>
+													@endif
 												</tr>
 
 											<?php } }
@@ -275,4 +291,10 @@
 	</div>
 
 
+<script>
+    var _GLOBAL_SEARCH_ARCHIVE_URL   = "{{ url('patient/patient-archive') }}";
+    var _GLOBAL_SEARCH_UNARCHIVE_URL = "{{ url('patient/patient-unarchive') }}";
+    var _GLOBAL_SEARCH_CSRF          = "{{ csrf_token() }}";
+</script>
+<script src="{{ asset('assets/modulejs/globalsearch/global_search_module.js') }}?time={{ env('timestamp')}}"></script>
 	@include('include/footer')

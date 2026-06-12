@@ -1162,74 +1162,13 @@
                                                                     </h5>
                                                                 </div>
                                                                 <div class="row basic-detail-row">
-
-                                                                    <div class="col-md-6">
-                                                                        <div class="row">
-                                                                            <div class="col-md-5">
-                                                                                <dt>Country</dt>
-                                                                            </div>
-                                                                            <div class="col-md-7">
-                                                                                <dd class="show" id="basic_county"> <?php echo $record->county == null ? 'N/A' : $record->county . '<br>'; ?>
-                                                                                </dd>
-                                                                                <dd class="hide">
-                                                                                    <input type="text" class="form-control" id="county" name="county" readonly onkeypress="return isNumber(event)" value="{{ $record->county }}">
-                                                                                    <span id="county_error" class="error mt-2"></span>
-                                                                                </dd>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="col-md-6">
-                                                                        <div class="row">
-                                                                            <div class="col-md-5">
-                                                                                <dt>State</dt>
-                                                                            </div>
-                                                                            <div class="col-md-7">
-                                                                                <dd class="show" id="basic_state"> <?php echo $record->state . '<br>'; ?>
-                                                                                </dd>
-                                                                                <dd class="hide">
-                                                                                    <input type="text" class="form-control charCls" placeholder="Enter State" id="state" name="state" value="{{ $record['state'] }}" maxlength="50">
-                                                                                    <span id="state_error" class="error mt-2"></span>
-                                                                                </dd>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="col-md-6">
-                                                                        <div class="row">
-                                                                            <div class="col-md-5">
-                                                                                <dt>City</dt>
-                                                                            </div>
-                                                                            <div class="col-md-7">
-                                                                                <dd class="show" id="basic_city"> <?php echo $record->city . '<br>'; ?>
-                                                                                </dd>
-                                                                                <dd class="hide">
-                                                                                    <input type="text" class="form-control charCls" placeholder="Enter City" id="city" name="city" value="{{ $record['city'] }}" maxlength="50">
-                                                                                    <span id="city_error" class="error mt-2"></span>
-                                                                                </dd>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="col-md-6">
-                                                                        <div class="row">
-                                                                            <div class="col-md-5">
-                                                                                <dt>Zip Code</dt>
-                                                                            </div>
-                                                                            <div class="col-md-7">
-                                                                                <dd class="show" id="basic_zipcode"> <?php echo $record->zip_code . '<br>'; ?>
-                                                                                </dd>
-                                                                                <dd class="hide">
-                                                                                    <input type="text" class="form-control" placeholder="Enter Zip Code" id="zip_code" name="zip_code" onkeypress="return isNumber(event)" onchange="getCountyByZipCode(this.value)" value="{{ $record['zip_code'] }}">
-                                                                                    <span id="zip_code_error" class="error mt-2"></span>
-                                                                                </dd>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
                                                                     <div class="col-md-6">
                                                                         <div class="row">
                                                                             <div class="col-md-5">
                                                                                 <dt>Address1</dt>
                                                                             </div>
                                                                             <div class="col-md-7">
-                                                                                <dd class="show" id="basic_address1"> <?php echo $record->address1 . '<br>'; ?>
+                                                                                <dd class="show" id="basic_address1"> {!! $record->address1 ? $record->address1 . '<br>' : 'N/A' !!}
                                                                                 </dd>
                                                                                 <dd class="hide">
                                                                                     <input type="text" class="form-control" placeholder="Enter Address 1" id="address1" name="address1" value="{{ $record['address1'] }}">
@@ -1244,7 +1183,7 @@
                                                                                 <dt> Apt/Suite/Floor</dt>
                                                                             </div>
                                                                             <div class="col-md-7">
-                                                                                <dd class="show" id="basic_address2"> <?php echo $record->address2 . '<br>'; ?>
+                                                                                <dd class="show" id="basic_address2"> {!! $record->address2 ? $record->address2 . '<br>' : 'N/A' !!}
                                                                                 </dd>
                                                                                 <dd class="hide">
                                                                                     <input type="text" class="form-control" placeholder="Enter Apt/Suite/Floor" id="address2" name="address2" value="{{ $record['address2'] }}">
@@ -1253,8 +1192,67 @@
                                                                             </div>
                                                                         </div>
                                                                     </div>
-
-
+                                                                    <div class="col-md-6">
+                                                                        <div class="row">
+                                                                            <div class="col-md-5">
+                                                                                <dt>City</dt>
+                                                                            </div>
+                                                                            <div class="col-md-7">
+                                                                                <dd class="show" id="basic_city"> {!! $record->city ? $record->city . '<br>' : 'N/A' !!}
+                                                                                </dd>
+                                                                                <dd class="hide">
+                                                                                    <input type="text" class="form-control charCls" placeholder="Enter City" id="city" name="city" value="{{ $record['city'] }}" maxlength="50">
+                                                                                    <span id="city_error" class="error mt-2"></span>
+                                                                                </dd>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-md-6">
+                                                                        <div class="row">
+                                                                            <div class="col-md-5">
+                                                                                <dt>State</dt>
+                                                                            </div>
+                                                                            <div class="col-md-7">
+                                                                                <dd class="show" id="basic_state"> {!! $record->state ? $record->state . '<br>' : 'N/A' !!}
+                                                                                </dd>
+                                                                                <dd class="hide">
+                                                                                    <input type="text" class="form-control charCls" placeholder="Enter State" id="state" name="state" value="{{ $record['state'] }}" maxlength="50">
+                                                                                    <span id="state_error" class="error mt-2"></span>
+                                                                                </dd>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    
+                                                                    <div class="col-md-6">
+                                                                        <div class="row">
+                                                                            <div class="col-md-5">
+                                                                                <dt>Zip Code</dt>
+                                                                            </div>
+                                                                            <div class="col-md-7">
+                                                                                <dd class="show" id="basic_zipcode"> {!! $record->zip_code ? $record->zip_code . '<br>' : 'N/A' !!}
+                                                                                </dd>
+                                                                                <dd class="hide">
+                                                                                    <input type="text" class="form-control" placeholder="Enter Zip Code" id="zip_code" name="zip_code" onkeypress="return isNumber(event)" onchange="getCountyByZipCode(this.value)" value="{{ $record['zip_code'] }}">
+                                                                                    <span id="zip_code_error" class="error mt-2"></span>
+                                                                                </dd>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-md-6">
+                                                                        <div class="row">
+                                                                            <div class="col-md-5">
+                                                                                <dt>County</dt>
+                                                                            </div>
+                                                                            <div class="col-md-7">
+                                                                                <dd class="show" id="basic_county"> {!! $record->county ? $record->county . '<br>' : 'N/A' !!}
+                                                                                </dd>
+                                                                                <dd class="hide">
+                                                                                    <input type="text" class="form-control" id="county" name="county" readonly onkeypress="return isNumber(event)" value="{{ $record->county }}">
+                                                                                    <span id="county_error" class="error mt-2"></span>
+                                                                                </dd>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
                                                                     <div class="col-md-6">
                                                                         <div class="row">
                                                                             <div class="col-md-5">
@@ -1945,16 +1943,16 @@
                                                                         <dd>
                                                                                 <span>
                                                                                     <span id="telehealth-appointment-date-id">
-                                                                                        @if(isset($telehealth_time_slot['start_time']))
-                                                                                            <p><strong>Date:</strong>{{ date('m/d/Y', strtotime($record->telehealth_date_time))}} </p>
-                                                                                            <p><strong>Time Slot:</strong> {{$telehealth_time_slot['start_time']}} - {{$telehealth_time_slot['end_time']}} <br/>
-                                                                                            <strong>Nurse</strong>:
-                                                                                            C#{{$telehealth_time_slot['nurse_id']}}
-                                                                                            @if(isset($nurse) && array_key_exists($telehealth_time_slot['nurse_id'],$nurse))
-                                                                                                ({{$nurse[$telehealth_time_slot['nurse_id']]['language']}})
+                                                                                        @if(!empty($telehealth_time_frame) || isset($telehealth_time_slot['start_time']))
+                                                                                            <p><strong>Date:</strong> {{ date('m/d/Y', strtotime($record->telehealth_date_time)) }}</p>
+                                                                                            <p><strong>Time Frame:</strong> {{ $telehealth_time_frame }}</p>
+                                                                                            @if(!empty($record->telehealth_nurse))
+                                                                                            <p><strong>Nurse:</strong> C#{{ $record->telehealth_nurse }}
+                                                                                            @if(isset($nurse) && array_key_exists($record->telehealth_nurse, $nurse))
+                                                                                                ({{ $nurse[$record->telehealth_nurse]['language'] }})
                                                                                             @endif
-                                                                                            <br/>
-                                                                                            @if(!empty($telehealth_time_slot['name']))<strong>Language:</strong> {{$telehealth_time_slot['name']}}@endif</p>
+                                                                                            </p>
+                                                                                            @endif
                                                                                         @endif
                                                                                     </span>
                                                                                     <?php if ($user['user_type_fk'] == 184 || $user['user_type_fk'] == 6) { ?>

@@ -259,34 +259,54 @@
                 <div id="telehaelthbookDiv" style="display:none;">
                     <input type="hidden" name="_token" value="<?php echo csrf_token(); ?>">
                     <input type="hidden" name="id" value="<?php echo $record->id; ?>">
+
+                    {{-- Single hidden input always carries the resolved language ID --}}
+                    <input type="hidden" id="res_telehealth_language" name="res_telehealth_language" value="">
+
+                    {{-- Shown by JS when patient already has a language (reads live DOM values) --}}
+                    <div class="form-group mb-1" id="res_lang_label_div" style="display:none;">
+                        <label class="col-form-label py-0">Portal Language: <strong id="res_lang_label_text"></strong></label>
+                    </div>
+
+                    {{-- Shown by JS when patient has no language saved yet --}}
+                    <div class="form-group" id="res_lang_select_div" style="display:none;">
+                        <label for="res_telehealth_language_select" class="col-form-label">Portal Language <span style="color:red">*</span></label>
+                        <select class="form-control" id="res_telehealth_language_select">
+                            <option value="">Select Language</option>
+                            @foreach($language_list as $lang)
+                                <option value="{{ $lang->id }}">{{ $lang->name }}</option>
+                            @endforeach
+                        </select>
+                        <span id="res_telehealth_language_error" class="error mt-2 text-danger"></span>
+                    </div>
+
+                    <div id="res_lang_note_div" style="display:none; margin-top:-6px; margin-bottom:10px;">
+                        <small class="d-flex align-items-center" style="color:#0c5460; background:#d1ecf1; border:1px solid #bee5eb; border-radius:4px; padding:6px 10px; line-height:1.4;">
+                            <i class="fa fa-info-circle mr-2" style="font-size:13px; flex-shrink:0;"></i>
+                            The selected language will be used to update the portal's language.
+                        </small>
+                    </div>
+
                     <div class="form-group telehealth">
                         <label for="recipient-name" class="col-form-label">Telehealth Appointment Date <span style="color:red">*</span></label>
                         <input type="text" name="date" class="form-control" autocomplete="off" id="res_patient_telehealth_date_id" placeholder="mm/dd/yyyy" readonly><i class="date-icon fa fa-calendar" aria-hidden="true"></i>
                         <span id="res_patient_telehealth_date_id_error" class="error mt-2 error" for="document_type"></span>
                     </div>
                     <div class="form-group">
+                        <label for="res_telehealth_time_frame" class="col-form-label">Time Frame <span style="color:red">*</span></label>
+                        <select class="form-control" id="res_telehealth_time_frame" name="res_telehealth_time_frame">
+                            <option value="">Select Time Frame</option>
+                        </select>
+                        <span id="res_telehealth_time_frame_error" class="error mt-2 text-danger"></span>
+                    </div>
+                    <div class="form-group">
                         <label for="nurse">Nurse <span style="color:red">*</span></label>
                         <select class="form-control select2" id="res_telehealth_nurse" name="res_telehealth_nurse">
-                            <option value="">Select Nurse</option>
-                            @foreach($nurse as $key => $user)
-                            <option value="{{ $key }}"> C#{{ $key }} ({{$user['language']}}) </option>
-                            @endforeach
+                            <option value="">Select Date &amp; Time Frame First</option>
                         </select>
                         <span id="res_telehealth_nurse_error" class="error mt-2 error" for="document_type"></span>
                     </div>
-                    <div class="form-group">
-                        <label for="recipient-name" class="col-form-label">Select Slot <span style="color:red">*</span></label>
-                        <select class="form-control select2" id="res_patient_telehealth_time_slot" name="res_patient_telehealth_time_slot">
-                            <option value="">Select Slot</option>
-
-                            @if(isset($slot))
-                                @foreach($slots as $key => $slot)
-                                <option value="{{ $slots['id'] }}">{{ $slots['name'] }}</option>
-                                @endforeach
-                            @endif
-                        </select>
-                        <span id="res_patient_telehealth_time_slot_error" class="error mt-2 error" for="document_type"></span>
-                    </div>
+                    <input type="hidden" id="res_patient_telehealth_time_slot" name="res_patient_telehealth_time_slot" value="">
                     <div class="form-group">
                         <label class="col-form-label">Services<span class="error mt-2">*</span></label>
                         <select class="js-example-basic-multiple w-100" multiple="multiple"

@@ -21,10 +21,10 @@ class SiteSettingServices{
         }
         if(isset($data['id']) && $data['id'] !=""){
             $data['updated_date'] = date('Y-m-d H:i:s');
-            $data['updated_by'] = $auth['id'];
+            $data['updated_by'] = $auth->id;
         }else{
             $data['created_date'] = date('Y-m-d H:i:s');
-            $data['created_by'] = $auth['id'];
+            $data['created_by'] = $auth->id;
         }
 
         return SiteSetting::updateOrCreate(['id'=>$data['id']],$data);
@@ -32,5 +32,9 @@ class SiteSettingServices{
 
     public function getDetails(){
         return SiteSetting::where('del_flag','N')->first();
+    }
+
+    public function update($data){
+        return SiteSetting::where('del_flag', 'N')->update($data);
     }
 }

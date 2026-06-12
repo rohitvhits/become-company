@@ -73,7 +73,7 @@
                             <div class="row">
                                 <div class="col-md-6 @if(strtolower($edit_template->lookup_fields) == 'caregiver') @else hide @endif" id="template_type_div">
                                     <div class="form-group row">
-                                        <label class="col-sm-3 col-form-label" for="template_type">Template Type <span class="error" id="template_type_required">*</span></label>
+                                        <label class="col-sm-3 col-form-label" for="template_type">Template Type</label>
                                         <div class="col-sm-9">
                                             <select class="form-control" name="template_type" id="template_type">
                                                 <option value="">Select Template Type</option>
@@ -338,11 +338,11 @@
 
             // Template Type required only when Caregiver is selected
             if (!$('#template_type_div').hasClass('hide')) {
-                var template_type = $('#template_type').val();
-                if (template_type == '') {
-                    $('#template_type_error').html(" Required ");
-                    cnt = 1;
-                }
+                // var template_type = $('#template_type').val();
+                // if (template_type == '') {
+                //     $('#template_type_error').html(" Required ");
+                //     cnt = 1;
+                // }
             }
 
             if (cnt == 1) {

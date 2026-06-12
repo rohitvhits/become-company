@@ -179,7 +179,7 @@
                                 <div class="search-inner">
                                     <div>
                                         <input type="button" name="search" class="btn btn-primary search-btn1 searchAppoinment" id="search-data" value="Search">
-                                        <a href="javascript:void(0)" hrefd="{{URL::to('/')}}/patients/patient-export?agency_fk=&amp;full_name=&amp;status=&amp;appointment_date=&amp;location_id=&amp;service_id=&amp;type=&amp;created_date=&amp;sms_status=&amp;assign_user_id=" class="btn btn-success btn-rounded btn-sm btn-fw  ml-1 btnExport" id="test_agency"><i class="mdi mdi-file-export"></i>Export</a>
+                                        <a href="javascript:void(0)" hrefd="{{URL::to('/')}}/patient/patient-export?agency_fk=&amp;full_name=&amp;status=&amp;appointment_date=&amp;location_id=&amp;service_id=&amp;type=&amp;created_date=&amp;sms_status=&amp;assign_user_id=" class="btn btn-success btn-rounded btn-sm btn-fw  ml-1 btnExport" id="test_agency"><i class="mdi mdi-file-export"></i>Export</a>
                                         <!-- <a href="{{URL::to('/')}}/patient" class="btn btn-light btn-rounded btn-fw btn-sm"><i class="mdi mdi-reload"></i> Clear</a> -->
                                     </div>
                                 </div>

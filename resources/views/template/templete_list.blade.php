@@ -43,6 +43,9 @@
                      
 
                          <a href="javascript:void(0)" id="filter-btn" class="btn cust-right-btn" style="background-color: #00879E;color:#fff;"><i class="mdi mdi-filter-outline"></i>Filter <span class="active-filter"></span></a>
+                         @can('template-import')
+                         <a href="{{ url('esign/esign-import')}}" class="btn btn-secondary  cust-right-btn"><i class="mdi mdi-file-export"></i>Import</a>
+                         @endcan
                 </div>
             </div>
         </div>

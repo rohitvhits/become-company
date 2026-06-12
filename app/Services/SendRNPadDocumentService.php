@@ -13,7 +13,7 @@ class SendRNPadDocumentService
     {
         $auth = auth()->user();
         $data['created_date'] = date('Y-m-d H:i:s');
-        $data['created_by'] = $auth['id'];
+        $data['created_by'] = $auth['id'] ?? env('API_USER_ID');
         $data['del_flag'] = "N";
 
         $insert = new SendRNPadDocument($data);

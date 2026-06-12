@@ -29,7 +29,7 @@
             <form class="forms-sample" enctype="multipart/form-data" action="" name="adduser" method="post" id="esignMoveDocumentForm">
                 <div class="modal-body p-4" style="background-color:white">
 
-                    <input type="hidden" name="id" value="<?php echo $record->id; ?>">
+                    <input type="hidden" name="id" id="move_doc_record_id" value="@if(isset($record->id)) {{ $record->id}} @endif">
                     <input type="hidden" name="esign_doc_id" id="esign_doc_id" value="">
                     <input type="hidden" name="did" id="document_ids" value="">
                     <input type="hidden" name="type" id="type" value="">
@@ -102,7 +102,7 @@
                                 </div>
                             </div>
                            
-                            <div class="form-group row  @if(strtolower($record->type) == 'patient' && $auth->agency_fk == '') @else hide @endif" id="esign_document_approval_id">
+                            <div class="form-group row  @if(isset($record->type) && strtolower($record->type) == 'patient' && $auth->agency_fk == '') @else hide @endif" id="esign_document_approval_id">
                                 <label for="esign_document_approval_user_id" class="font-weight-semibold">
                                     User <span class="text-danger">*</span>
                                 </label>

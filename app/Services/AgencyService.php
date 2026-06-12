@@ -160,4 +160,8 @@ class AgencyService{
     {
         return Agency::where('ai_call_logs_enabled', 1)->pluck('id')->all();
     }
+
+    public function getAllAgencyList(){
+        return Agency::where('delete_flag', 'N')->pluck('agency_name','id')->toArray();
+    }
 }

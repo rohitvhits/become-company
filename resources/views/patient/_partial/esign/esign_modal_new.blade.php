@@ -8,7 +8,7 @@
     }
 </style>
 
-<div class="modal fade" id="exampleModal-esign-new" tabindex="-1" role="dialog" aria-labelledby="ModalLabel" aria-hidden="true">
+<div class="modal fade" id="exampleModal-esign-new" tabindex="-1" aria-labelledby="ModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="background-color:transparent !important">
             <div class="modal-header text-white" style="background-color:#000000 !important">
@@ -22,7 +22,7 @@
             <form action="{{ url('esign/template/docusign-sent-new')}}" method="POST" id="edit_template_modal_new">
                 <input type="hidden" name="_token" value="<?php echo csrf_token(); ?>">
                 <input type="hidden" name="eid" id="temp1" value="<?php echo $record->id; ?>">
-                <input type="hidden" name="eidc" id="temp1" value="<?php echo $record->patient_code; ?>">
+                <input type="hidden" name="eidc" id="temp12" value="<?php echo $record->patient_code; ?>">
                 <input type="hidden" name="receipt_name" value="<?php echo $record->first_name . ' ' . $record->last_name; ?>">
                 <input type="hidden" name="type" id="type" value="<?php echo $record->type; ?>">
 
@@ -33,9 +33,9 @@
                     @endphp
                         @if(strtolower($userTemplateType) == 'all')
                         <div class="form-group">
-                            <label class="font-weight-semibold">Template Type</label>
+                            <label for="" class="font-weight-semibold">Template Type</label>
                             <div class="esign-template-type">
-                                <label class="mr-3">
+                                <label for="" class="mr-3">
                                     <input type="radio" name="template_type" value="" checked> All
                                 </label>
                                 <label class="mr-3">

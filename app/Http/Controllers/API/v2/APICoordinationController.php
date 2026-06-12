@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\API\V2;
+namespace App\Http\Controllers\API\v2;
 
 use App\Agency;
 use Illuminate\Http\Request;
@@ -98,9 +98,6 @@ class APICoordinationController extends BaseController
             'phone'       => 'required',
             'service_requested'  => 'required',
             'agency_name' => 'required',
-            'email' => 'required',
-            'appointment_date' => 'required',
-            'appointment_time' => 'required'
         ]);
 
         if ($validator->fails()) {

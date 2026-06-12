@@ -52,6 +52,11 @@ use App\Http\Controllers\LeadCoordinationReportController;
 | contains the "web" middleware group. Now create something great!
 |
 */
+//api v1 log-viewer
+
+Route::get('/api/log-viewer/', function () {
+    return redirect('/log-viewer');
+});
 
 // Health Check Endpoint - No middleware required
 Route::get('/health-check', [HealthCheckController::class, 'index']);
@@ -726,7 +731,7 @@ Route::group(['middleware' => ['XSS']], function () {
 		Route::post('patient/save', [\App\Http\Controllers\PatientController::class, 'save']);
 		Route::get('patient/edit/{id}', [\App\Http\Controllers\PatientController::class, 'edit']);
 		Route::get('patient/delete/{id}', [\App\Http\Controllers\PatientController::class, 'delete']);
-		Route::get('patients/patient-export', [\App\Http\Controllers\PatientController::class, 'agencyExport']);
+		Route::get('patient/patient-export', [\App\Http\Controllers\PatientController::class, 'exportCsv']);
 		Route::post('patient/update/{id}', [\App\Http\Controllers\PatientController::class, 'update']);
 		Route::get('patient/view/{id}', [\App\Http\Controllers\PatientController::class, 'view']);
 		Route::get('/appointment-view-logs', [\App\Http\Controllers\PatientController::class, 'appointmentWiselogs']);
@@ -1085,10 +1090,6 @@ Route::group(['middleware' => ['XSS']], function () {
 		Route::get('/agency-summary-ajax', [\App\Http\Controllers\AgencySummaryController::class, 'ajaxList']);
 		Route::get('/agency-summary-export', [\App\Http\Controllers\AgencySummaryController::class, 'exportCSV']);
 		/*Agency Summary Module End*/
-
-		Route::resource('esign-report', EsignReportController::class);
-		Route::get('/esign-report-ajax-list', [\App\Http\Controllers\EsignReportController::class, 'ajaxList']);
-		Route::get('/esign-report-export', [\App\Http\Controllers\EsignReportController::class, 'reportExport']);
 
 		/* HHA Visit calender */
 		Route::post('hha-caregiver-visit-list-data', [\App\Http\Controllers\HHACaregiversController::class, 'getCaregiverAppointmentData']);
@@ -1458,6 +1459,7 @@ Route::group(['middleware' => ['XSS']], function () {
 		Route::get('search-alayacare-clients', [\App\Http\Controllers\AlayacareClientController::class, 'searchAlayacareClients']);
 
 		Route::get('/telehealth-schedule-manage', [\App\Http\Controllers\TelehealthLocationScheduleController::class, 'teleHealthMange']);
+		Route::post('/save-time-frame-hours', [\App\Http\Controllers\TelehealthLocationScheduleController::class, 'saveTimeFrameHours']);
 		Route::get('/get-location-type-wise', [\App\Http\Controllers\TelehealthLocationScheduleController::class, 'getLocationTypeWise']);
 		Route::post('check-nurse-schedule', [\App\Http\Controllers\TelehealthLocationScheduleEventController::class, 'checkNurseScheduleByDate']);
 		Route::post('update-nurse-schedule-by-date', [\App\Http\Controllers\TelehealthLocationScheduleEventController::class, 'updateNurseScheduleByDate']);

@@ -17,11 +17,15 @@ use App\User;
 use App\Model\PatientTelehealthSchedule;
 use App\Helpers\Utility;
 use App\Services\PatientService;
+use App\Services\SiteSettingServices;
 class TelehealthLocationScheduleController extends BaseController
 {
 
-    protected $telehealthLocationScheduleService,$locationMasterService,$logService,$telehealthLocationScheduleSlotService,$telehealthLocationScheduleDayService,$telehealthLocationScheduleEventService,$disableDateService,$patientService="";
-    public function __construct(LocationMasterService $locationMasterService, TelehealthLocationScheduleService $telehealthLocationScheduleService, LogsService $logService, TelehealthLocationScheduleSlotService $telehealthLocationScheduleSlotService, TelehealthLocationScheduleDayService $telehealthLocationScheduleDayService, TelehealthLocationScheduleEventService $telehealthLocationScheduleEventService, DisableDateService $disableDateService, PatientService $patientService)
+    protected $telehealthLocationScheduleService,$locationMasterService,$logService,$telehealthLocationScheduleSlotService,$telehealthLocationScheduleDayService,$telehealthLocationScheduleEventService,$disableDateService,$patientService,$siteSettingService="";
+
+    protected const COMMON_MODULE = "Telehealth Location Schedule";
+
+    public function __construct(LocationMasterService $locationMasterService, TelehealthLocationScheduleService $telehealthLocationScheduleService, LogsService $logService, TelehealthLocationScheduleSlotService $telehealthLocationScheduleSlotService, TelehealthLocationScheduleDayService $telehealthLocationScheduleDayService, TelehealthLocationScheduleEventService $telehealthLocationScheduleEventService, DisableDateService $disableDateService, PatientService $patientService, SiteSettingServices $siteSettingService)
     {
         $this->middleware('permission:manage-telehealth-location', ['only' => ['index','teleHealthMange']]);
         $this->middleware('auth', ['except' => ['SearchByLocationIdAndDate']]);
@@ -33,6 +37,7 @@ class TelehealthLocationScheduleController extends BaseController
         $this->telehealthLocationScheduleEventService = $telehealthLocationScheduleEventService;
         $this->disableDateService = $disableDateService;
         $this->patientService = $patientService;
+        $this->siteSettingService = $siteSettingService;
     }
 
 
@@ -80,12 +85,12 @@ class TelehealthLocationScheduleController extends BaseController
 
     public function save(Request $request)
     {
-        $user = auth()->user(); 
+        $user = auth()->user();
         $validator = Validator::make($request->all(), [
             'days' => 'required',
             'start_time' => 'required',
             'end_time' => 'required',
-            'slot' => ['required', 'integer', function ($attribute, $value, $fail) use ($request) {
+            'slot' => ['required', 'integer', function ($value, $fail) use ($request) {
                 $start = strtotime($request->start_time);
                 $end = strtotime($request->end_time);
                 $diffInMinutes = ($end - $start) / 60;
@@ -135,13 +140,11 @@ class TelehealthLocationScheduleController extends BaseController
                     ];
                     $this->telehealthLocationScheduleSlotService->save($slotData);
                 }
-                
-                // $ipaddress = request()->getClientIp();
                 $ipaddress = Utility::getIP();
                 $insertLog = [
                     'type' => 'Add Telehealth Location Schedule',
                     'link' => url('/telehealth-location-schedule/save'),
-                    'module' => 'Telehealth Location Schedule',
+                    'module' => self::COMMON_MODULE,
                     'object_id' => $request->input('location_id'),
                     'message' => $user->first_name . ' ' . $user->last_name . ' has added Telehealth Location Schedule',
                     'new_response' => serialize($data),
@@ -170,7 +173,7 @@ class TelehealthLocationScheduleController extends BaseController
             'title' => 'required',
             'start_time' => 'required',
             'end_time' => 'required',
-            'slot' => ['required', 'integer', function ($attribute, $value, $fail) use ($request) {
+            'slot' => ['required', 'integer', function ($value, $fail) use ($request) {
                 $start = strtotime($request->start_time);
                 $end = strtotime($request->end_time);
                 $diffInMinutes = ($end - $start) / 60;
@@ -219,12 +222,11 @@ class TelehealthLocationScheduleController extends BaseController
                     ];
                     $this->telehealthLocationScheduleSlotService->save($slotData);
                 }
-                // $ipaddress = request()->getClientIp();
                 $ipaddress = Utility::getIP();
                 $insertLog = [
                     'type' => 'Update Telehealth Location Schedule',
                     'link' => url('/location-telehealth-schedule/update'),
-                    'module' => 'Telehealth Location Schedule',
+                    'module' => self::COMMON_MODULE,
                     'object_id' => $locationsId,
                     'message' => $user->first_name . ' ' . $user->last_name . ' has updated Telehealth Location Schedule',
                     'new_response' => serialize($data),
@@ -255,7 +257,7 @@ class TelehealthLocationScheduleController extends BaseController
             $insertLog = [
                 'type' => 'Delete Telehealth Location Schedule',
                 'link' => url('/telehealth-location-schedule/delete/'.$id),
-                'module' => 'Telehealth Location Schedule',
+                'module' => self::COMMON_MODULE,
                 'object_id' => $id,
                 'message' => $user->first_name . ' ' . $user->last_name . ' has deleted Telehealth Location Schedule',
                 'new_response' => serialize($data),
@@ -278,7 +280,7 @@ class TelehealthLocationScheduleController extends BaseController
     {
         $id = request('id');
         $data['user'] = auth()->user();
-        $data['logList'] = LogsService::getDatByAllLog($id,'Telehealth Location Schedule');
+        $data['logList'] = LogsService::getDatByAllLog($id,self::COMMON_MODULE);
 
         return view("user_log_ajax_list", $data);
     }
@@ -309,11 +311,11 @@ class TelehealthLocationScheduleController extends BaseController
 				$languages = array();
 				foreach($nurse->nurseLanguages as $nLang){
                     if(isset($nLang->languages[0])){
-					    $languages[] = $nLang->languages[0]['name'];  
+					    $languages[] = $nLang->languages[0]['name'];
                     }
 				}
 				$langArray[$nurse['id']]['language'] = implode(',', $languages);
-				$langArray[$nurse['id']]['name'] = $nurse['name'];  
+				$langArray[$nurse['id']]['name'] = $nurse['name'];
 			}
 		}
 		$data['nurse'] = $langArray;
@@ -331,7 +333,7 @@ class TelehealthLocationScheduleController extends BaseController
         $flg = 0 ;
         $slotCount = count($slotsData);
         foreach($slotsData as $slotd){
-            $dataC = count($slotd); 
+            $dataC = count($slotd);
             if($dataC == 40){
                 $flg++;
             }
@@ -340,7 +342,19 @@ class TelehealthLocationScheduleController extends BaseController
             $data['showFlag'] = 1;
         }
         $data['disable_date']  = json_encode($dateDetailArray);
+        $setting = $this->siteSettingService->getDetails();
+        $data['timeFrameHours'] = $setting ? (int)($setting->telehealth_time_frame_hours ?? 1) : 1;
         return view("telehealthLocationSchedule/manage_telehealth",$data);
+    }
+
+    public function saveTimeFrameHours(Request $request)
+    {
+        $hours = (int) $request->input('hours', 1);
+        if (!in_array($hours, [1, 2, 3])) {
+            return response()->json(['status' => false, 'message' => 'Invalid value.']);
+        }
+        $this->siteSettingService->update(['telehealth_time_frame_hours' => $hours]);
+        return response()->json(['status' => true, 'message' => 'Time frame duration saved.', 'hours' => $hours]);
     }
 
     public function getLocationTypeWise(Request $request){

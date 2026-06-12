@@ -135,7 +135,7 @@ class AppointmentService{
 	}
 
 	public function getDetailsByIdWithSomeDetails($id){
-        return Appointment::with(['patient:id,first_name,middle_name,last_name,agency_id,status,type','patient.agencyDetail:id,agency_name','location:id,address1,address2,city,state,zip_code','appointmentScheduleSlot:id,start_time,end_time','appointmentPatientScheduleSlot:id,start_time,end_time','appointmentScheduleNurse:id,first_name,last_name'])->select('appointment_date','appointment_time','created_at','service_id','status','patient_id','location_id','telehealth_date','telehealth_time_slot','telehealth_nurse')->where('id',$id)->where('del_flag','N')->first();
+        return Appointment::with(['patient:id,first_name,middle_name,last_name,agency_id,status,type','patient.agencyDetail:id,agency_name','location:id,address1,address2,city,state,zip_code','appointmentScheduleSlot:id,start_time,end_time','appointmentPatientScheduleSlot:id,start_time,end_time','appointmentScheduleNurse:id,first_name,last_name'])->select('appointment_date','appointment_time','created_at','service_id','status','patient_id','location_id','telehealth_date','telehealth_time_slot','telehealth_nurse','telehealth_time_frame')->where('id',$id)->where('del_flag','N')->first();
     }
 
 	public function getTodayAppointmentDateWise($from_date,$to_date){
@@ -224,6 +224,7 @@ class AppointmentService{
 				'telehealth_time_slot',
 				'telehealth_language',
 				'telehealth_nurse',
+				'telehealth_time_frame',
 				'appointment.id as id',
 			)
 			->where('del_flag', 'N')
@@ -280,7 +281,7 @@ class AppointmentService{
 		$query = Appointment::with(['patient:id,first_name,middle_name,last_name,agency_id,type','patient.agencyDetail:id,agency_name'])
 		->leftjoin('telehealth_location_schedule_events', 'telehealth_location_schedule_events.id', '=', 'appointment.telehealth_time_slot')
 		->leftjoin('language as appointment_language', 'appointment_language.id', '=', 'appointment.telehealth_language')
-		->select('appointment.created_at','patient_id','telehealth_date','telehealth_time_slot','telehealth_location_schedule_events.start_time','telehealth_location_schedule_events.end_time','appointment_language.name','telehealth_location_schedule_events.nurse_id','appointment.created_by','appointment.telehealth_nurse');
+		->select('appointment.created_at','patient_id','telehealth_date','telehealth_time_slot','telehealth_location_schedule_events.start_time','telehealth_location_schedule_events.end_time','appointment_language.name','telehealth_location_schedule_events.nurse_id','appointment.created_by','appointment.telehealth_nurse','appointment.telehealth_time_frame');
 		$where = " `appointment`.`del_flag` = 'N'";
 		if(!empty($search)){
 			if(isset($search['agency_fk']) && $search['agency_fk'] != ''){

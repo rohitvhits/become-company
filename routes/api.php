@@ -7,6 +7,7 @@ use App\Http\Controllers\API\v2\APIController as APIV2Controller;
 use App\Http\Controllers\API\v2\HubController;
 use App\Http\Controllers\API\v2\APICoordinationController;
 use App\Http\Controllers\API\v2\TaskHealthController;
+use App\Http\Controllers\API\v3\API1Controller as APIV3Controller;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -52,7 +53,7 @@ Route::group(['prefix' => 'lead'], function () {
     Route::get('/insurance-list', [APIV2Controller::class, 'insuranceList']);
     Route::post('/update-service-date', [APIV2Controller::class, 'updateServiceStartDate']);
     Route::post('/save-lead-appointment', [APIV2Controller::class, 'addPatientNew']);
-
+    Route::post('/save-lead-appointment1', [APIV3Controller::class, 'addPatientNew']);
     /*  Task Health */
     Route::get('/get-all-agency-list', [TaskHealthController::class, 'getAllAgencyList']);
     Route::post('/save-task-health-appointment', [TaskHealthController::class, 'saveTaskHealthAppointment'])->middleware('api.logger');

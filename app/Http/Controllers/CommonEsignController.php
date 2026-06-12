@@ -870,6 +870,7 @@ class CommonEsignController extends Controller
 		$emailsUpdate = '';
 		$mobileUpdate = '';
 
+		$smsResponse = [];
 		foreach ((array) $request->sendType as $type) {
 			if ($type === 'email') {
 				$this->sendEmail($request->email, $link, $request->message);
@@ -877,14 +878,86 @@ class CommonEsignController extends Controller
 			}
 
 			if ($type === 'mobile' && !empty($request->mobile)) {
-				$this->sendSMS($query->main_intakeId, $request->mobile, $link, $request->message);
+				$smsResponse = $this->sendSMS($query->main_intakeId, $request->mobile, $link, $request->message);
 				$mobileUpdate = $request->mobile;
 			}
 		}
 
-		$this->updateLogsAndRecords($query->id, $request, $emailsUpdate, $mobileUpdate);
+		$this->updateLogsAndRecords($query->id, $query->main_intakeId, $emailsUpdate, $mobileUpdate,$smsResponse,$request->message,$query->groupId);
 
 		return 1;
+	}
+
+	public function bulkCaregiverSendSMS(Request $request)
+	{
+		$documents = $request->documents;
+		$groupIds = $request->groupIds;
+
+		if (empty($documents) && empty($groupIds)) {
+			return response()->json(['results' => []], 400);
+		}
+
+		// Build items list: either from per-document data or from shared params
+		$items = [];
+		if (!empty($documents) && is_array($documents)) {
+			foreach ($documents as $doc) {
+				$items[] = [
+					'groupId' => $doc['groupId'],
+					'email' => $doc['email'] ?? '',
+					'mobile' => $doc['mobile'] ?? '',
+					'hhaCaregiverId' => $doc['hhaCaregiverId'] ?? $request->hhaCaregiverId,
+					'sendType' => $request->sendType,
+					'message' => $request->message,
+				];
+			}
+		} else {
+			foreach ((array) $groupIds as $groupId) {
+				$items[] = [
+					'groupId' => $groupId,
+					'email' => $request->email,
+					'mobile' => $request->mobile,
+					'hhaCaregiverId' => $request->hhaCaregiverId,
+					'sendType' => $request->sendType,
+					'message' => $request->message,
+				];
+			}
+		}
+
+		$results = [];
+		foreach ($items as $item) {
+			try {
+				$singleRequest = new Request($item);
+
+				$query = $this->getDocumentQuery($singleRequest);
+				if (!isset($query->id)) {
+					$results[] = ['groupId' => $item['groupId'], 'portalId' => $item['hhaCaregiverId'] ?? '', 'mobile' => $item['mobile'] ?? '', 'status' => 'failed', 'error' => 'Document not found or already completed'];
+					continue;
+				}
+
+				$link = $this->prepareLink($query->id, $query->groupId);
+				$singleRequest->newGroupId = $query->groupId;
+				$emailsUpdate = '';
+				$mobileUpdate = '';
+				$smsResponse = [];
+				foreach ((array) $item['sendType'] as $type) {
+					if ($type === 'email' && !empty($item['email'])) {
+						$this->sendEmail($item['email'], $link, $item['message']);
+						$emailsUpdate = $item['email'];
+					}
+					if ($type === 'mobile' && !empty($item['mobile'])) {
+						$smsResponse = $this->sendSMS($query->main_intakeId, $item['mobile'], $link, $item['message']);
+						$mobileUpdate = $item['mobile'];
+					}
+				}
+
+				$this->updateLogsAndRecords($query->id, $item['hhaCaregiverId'], $emailsUpdate, $mobileUpdate,$smsResponse,$item['message'],$query->groupId);
+				$results[] = ['groupId' => $item['groupId'], 'portalId' => $query->main_intakeId ?? '', 'mobile' => $mobileUpdate, 'status' => 'success', 'error' => ''];
+			} catch (\Throwable $th) {
+				$results[] = ['groupId' => $item['groupId'], 'portalId' => $item['hhaCaregiverId'] ?? '', 'mobile' => $item['mobile'] ?? '', 'status' => 'failed', 'error' => $th->getMessage()];
+			}
+		}
+
+		return response()->json(['error_msg'=>'Bulk sms successfully send','data'=>$results],200);
 	}
 
 	private function getDocumentQuery(Request $request)
@@ -921,33 +994,39 @@ class CommonEsignController extends Controller
 
 	private function sendSMS($intakeId, $mobile, $link, $notes)
 	{
-		$smsMessage = "Dear,\nPlease complete esign from below link. Notes: {$notes}\n{$link}";
+		$smsMessage = "Dear,\nPlease complete esign from below link.\n{$link}";
+		if($notes !=""){
+			$smsMessage = $notes."\nPlease complete esign from below link.\n{$link}";
+		}
+		
 		$this->smsService->AgencyWiseSmsDynamic($intakeId, $mobile, $smsMessage);
 	}
 
-	private function updateLogsAndRecords($docId, Request $request, $email, $mobile)
+	private function updateLogsAndRecords($docId, $portalId, $email, $mobile,$smsResponse,$messageNote,$groupId)
 	{
+		
 		$updatedData = [
 			'document_id' => $docId,
-			'caregiver_id' => $request->hhaCaregiverId,
-			'message' => $request->message,
+			'caregiver_id' => $portalId,
+			'message' => $messageNote,
 			'email' => $email,
 			'mobile' => $mobile,
 		];
 
 		$this->documentSendSmsLogService->save($updatedData);
-		$saveResponse = ['email' => $email, 'sms' => $mobile];
+		$saveResponse = ['email' => $email, 'sms' => $mobile,'send_sms_mobile_no'=>$mobile,'bulk_send_sms_text'=>$messageNote,'sms_id' => $smsResponse['smsId']??"",'sms_status' => $smsResponse['status']??""];
+		
 		$this->documentSentReport->update($saveResponse, ['id' => $docId]);
 
 		$user = auth()->user();
-		$message = $user->first_name . ' ' . $user->last_name . ' has sent Esign message';
-		$saveResponse['message'] = $request->message;
+		$messages = $user->first_name . ' ' . $user->last_name . ' has sent Esign message';
+		$saveResponse['message'] = $messageNote;
 		$insertLog = [
 			'type' => 'Send Esign SMS',
 			'link' => url(self::LOG_ESIGN_SMS_LINK),
 			'module' => self::MODULE_TYPE,
-			'object_id' => $request->hhaCaregiverId,
-			'message' =>$message,
+			'object_id' => $portalId,
+			'message' =>$messages,
 			'new_response' => serialize($saveResponse),
 			'ip' => Utility::getIP(),
 		];
@@ -958,9 +1037,9 @@ class CommonEsignController extends Controller
 			'type' => 'Send Esign SMS',
 			'link' => url(self::LOG_ESIGN_SMS_LINK),
 			'module' => 'Esign Section',
-			'module_id' => $request->newGroupId,
+			'module_id' => $groupId,
 			'new_response' => serialize($saveResponse),
-			'message'=>$message,
+			'message'=>$messages,
 			'is_status'=>'Send SMS - Email'
 		];
 		$this->dynamicFormLogService->storeFormLog($insertLog);
@@ -987,6 +1066,7 @@ class CommonEsignController extends Controller
 				$query = $this->documentSentReport->GetDetailsbyGroupId($val->groupId);
 				$sentOnCount = 0;
 				$completedCount = 0;
+				$caregiverSignPending = false;
 				$pendingCount = 0;
 				if (!empty($query)) {
 					foreach ($query as $queryVal) {
@@ -998,11 +1078,14 @@ class CommonEsignController extends Controller
 								$completedCount++;
 							}
 						}
-						
+						if (strtolower($queryVal->sent_on) == 'caregiver' && $queryVal->status != 'Completed') {
+							$caregiverSignPending = true;
+						}
 					}
 				}
 				$val->sentOnCount = $sentOnCount;
 				$val->completedCount = $completedCount;
+				$val->caregiverSignPending = $caregiverSignPending;
 				$val->signerRemaining = $totalSigner[0]->total;
 
 				$completed_on = "";
@@ -1473,6 +1556,14 @@ class CommonEsignController extends Controller
 				}
 			}
 		}
+
+		$module_type = "";
+		if(isset($request->module_type) && $request->module_type !=""){
+			$module_type = $request->module_type;
+		}
+
+		$data['redirection_module_type'] = $module_type;
+		
 		return view('docusign.caregiveresign.view_pdf_iframe', $data);
 	}
 
@@ -1640,7 +1731,7 @@ class CommonEsignController extends Controller
 			}
 
 			$log->esign_old_response = unserialize($log->esign_old_response)??[];
-
+$log->esign_new_response = unserialize($log->esign_new_response)??[];
 			$newResponse[] = $log;
 		}
 		
@@ -2524,6 +2615,7 @@ $completedSignersSentOn = array_column($completedSigners, 'sent_on');
 				$query = $this->documentSentReport->GetDetailsbyGroupId($val->groupId);
 				$sentOnCount = 0;
 				$completedCount = 0;
+				$caregiverSignPending = false;
 				if (!empty($query)) {
 					foreach ($query as $queryVal) {
 						if (!empty($queryVal->sent_on)) {
@@ -2532,10 +2624,14 @@ $completedSignersSentOn = array_column($completedSigners, 'sent_on');
 						if ($queryVal->status == 'Completed') {
 							$completedCount++;
 						}
+						if (strtolower($queryVal->sent_on) == 'caregiver' && $queryVal->status != 'Completed') {
+							$caregiverSignPending = true;
+						}
 					}
 				}
 				$val->sentOnCount = $sentOnCount;
 				$val->completedCount = $completedCount;
+				$val->caregiverSignPending = $caregiverSignPending;
 				$val->signerRemaining = $totalSigner[0]->total;
 
 				$completed_on = "";
@@ -2995,7 +3091,7 @@ $completedSignersSentOn = array_column($completedSigners, 'sent_on');
 		$logs = $this->dynamicFormLogService->getDetailsById($request->id, $module);
 		$logs->old_response =unserialize($logs->esign_old_response);
 	
-		$logs->new_response = [unserialize($logs->esign_new_response)];
+		$logs->new_response = unserialize($logs->esign_new_response);
 		return response()->json(['data' => $logs]);
 	}
 

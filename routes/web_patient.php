@@ -34,6 +34,8 @@ Route::group(['middleware' => ['XSS']], function () {
                 Route::delete('delete-import/{id}',  'deleteImportHistory');
                 Route::post('approve-import/{id}',  'approveImportHistory');
                 Route::post('import-logs/{id}',  'getImportLogs');
+                Route::post('/get-filtered-nurses', [\App\Http\Controllers\TelehealthLocationScheduleEventController::class, 'getFilteredNursesByTimeFrame']);
+	            Route::post('/get-available-time-frames', [\App\Http\Controllers\TelehealthLocationScheduleEventController::class, 'getAvailableTimeFrames']);
         });
 
         Route::controller(\App\Http\Controllers\MergeAppointmentController::class)

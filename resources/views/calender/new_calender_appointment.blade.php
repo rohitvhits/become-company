@@ -57,6 +57,7 @@
                                             <p class="display_inline"><b>Appointment Type:</b></p>&nbsp;<dd class="display_inline" id="type_set"></dd><br>
                                             <p class="display_inline"><b>Appointment Date:</b></p>&nbsp;<dd class="display_inline" id="appointment_date_set"></dd><br>
                                             <p class="display_inline"><b>Appointment Time:</b></p>&nbsp;<dd class="display_inline" id="appointment_time_set"></dd><br>
+                                            <p class="display_inline" id="telehealth_time_frame" style="display:none"><b>Appointment Time Frame:</b></p>&nbsp;<dd class="display_inline" id="appointment_time_frame"></dd><br>
                                             <p class="display_inline"><b>Services:</b></p>&nbsp;<dd class="display_inline" id="service_name_set"></dd><br>
                                             <p class="display_inline"><b>SSN:</b></p>&nbsp;<dd class="display_inline" id="ssn_set"></dd>
                                         </dl>

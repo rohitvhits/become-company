@@ -18,6 +18,7 @@ use App\Master;
 use App\Model\PatientServiceRequest;
 use App\Model\PatientWiseServiceRequest;
 use App\Helpers\Utility;
+use App\Helpers\Common;
 use App\Services\PocMatchedTaskService;
 use App\Services\DocumentPatientService;
 use App\Services\DocumentUploadService;
@@ -821,7 +822,7 @@ class TaskHealthVisitController extends Controller
                 'diciplin' =>$discipline,
                 'phone'                  => $phoneRaw,
                 'mobile'                 => $mobileRaw,
-                'language'               => $langs[0] ?? null,
+                'language'               => Common::getOrCreateLanguageId($langs[0] ?? null),
                 'address1'               => $patient['address']  ?? null,
                 'address2'               => $patient['address2'] ?? null,
                 'task_health_patient_id' => (string) ($thPatientId ?? ''),
@@ -877,7 +878,7 @@ class TaskHealthVisitController extends Controller
                 'gender'           => $gender ?? '',
                 'phone'            => $rawPhone,
                 'mobile'           => $rawMobile,
-                'language'         => $langs[0] ?? '',
+                'language'         => Common::getOrCreateLanguageId($langs[0] ?? ''),
                 'address1'         => $patient['address']  ?? '',
                 'address2'         => $patient['address2'] ?? '',
                 'state'            => $patient['state']    ?? '',

@@ -3,9 +3,10 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CommonEsignController;
 use App\Http\Controllers\TempleteController;
+use App\Http\Controllers\EsignReportController;
+use App\Http\Controllers\EsignImportController;
 use App\Http\Controllers\DocumentWorkflowController;
 use App\Http\Controllers\EsignPatientDashboardController;
-
 Route::group(['middleware' => ['XSS']], function () {
 
     Route::group(['middleware' => 'auth'], function () {
@@ -21,6 +22,7 @@ Route::group(['middleware' => ['XSS']], function () {
                 Route::get('patient-docusign-delete/{id}', 'caregiverDelete');
                 Route::post('common/updateResponse', 'saveCommonResponse');
                 Route::post('patient-send-sms-esign', 'caregiverSendSMS');
+                Route::post('bulk-send-sms-esign', 'bulkCaregiverSendSMS');
                 Route::get('preview-pdf-response', 'previewPdfPatient');
                 Route::post('pdf/update-status', 'pdfUpdateStatus');
                 Route::post('pdf/undo-status', 'pdfUndoStatus');
@@ -87,6 +89,24 @@ Route::group(['middleware' => ['XSS']], function () {
 
             });
 
+        Route::controller(EsignImportController::class)
+            ->prefix('esign')
+            ->name('esign.')
+            ->group(function () {
+                Route::get('/esign-import', 'index');
+                Route::post('/esign-import-store', 'store');
+                Route::post('/esign-import-history', 'importHistory');
+                Route::get('/esign-import-download/{id}', 'downloadFile');
+                Route::get('/esign-import-sample-csv', 'sampleCSV');
+                Route::post('/esign-import-mapping-data', 'mappingData');
+                Route::post('/esign-import-confirm', 'confirmImport');
+                Route::post('/esign-import-delete', 'deleteImport');
+                Route::get('/esign-import-details/{id}', 'viewDetails');
+                Route::post('/esign-import-details-ajax', 'detailsAjax');
+                Route::post('/esign-import-error-detail', 'getErrorDetail');
+                Route::get('/esign-import-templates', 'getTemplatesByType');
+                Route::get('manual-sync-import',  'syncEsignImport');
+            });
     });
 
     /********Without Auth */
@@ -106,7 +126,6 @@ Route::group(['middleware' => ['XSS']], function () {
         ->prefix('esign')
         ->name('esign.')
         ->group(function () {
-
             Route::get('docusign/view/{id}', 'ViewDocusign');
             Route::post('docusign/esign-signature', 'EsignSignature');
             Route::post('docusign/upload-signature', 'uploadSignature');
@@ -129,8 +148,16 @@ Route::group(['middleware' => ['XSS']], function () {
             Route::get('template/esign-lookup-fields-new1/{id}', 'getResponseCanvasNew1');
             Route::post('upload_documentwebNew', 'upload_documentwebNew');
             Route::get('/template-signer-notification', 'getSignerNotification');
-            Route::post('/template-signer-notification-save', 'saveSignerNotification');
+		    Route::post('/template-signer-notification-save', 'saveSignerNotification');        
+	});
 
+    Route::prefix('esign/esign-report')
+        ->name('esign/esign-report.')
+        ->group(function () {
+            Route::resource('/', EsignReportController::class);
+            Route::get('/ajax-list', [EsignReportController::class, 'ajaxList']);
+            Route::get('/esign-report-export', [EsignReportController::class, 'reportExport']);
+            Route::post('/esign-bulk-send-sms', [EsignReportController::class, 'bulkSendSMS']);
+            Route::get('/search-nybest-all-user', [EsignReportController::class, 'searchNyBestAllUser']);
         });
-
 });

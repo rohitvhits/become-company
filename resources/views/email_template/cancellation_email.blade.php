@@ -30,7 +30,7 @@
                                
                                 <tr>
                                     <td style="font-family: Arial, sans-serif; font-size: 13px; line-height: 20px;">
-                                        <b>Appointment has been Cancelled.
+                                        <b>Appointment has been Cancelled by API.
                                         </b>
                                     </td>
                                 </tr>

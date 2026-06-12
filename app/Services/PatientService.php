@@ -701,11 +701,11 @@ class PatientService
 		if (!empty($medication_list)) {
 			if ($medication_list == 'Yes') {
 				$query->where(function($q) {
-					$q->where('medication_count', '>=', 1)->orWhere('no_medication_taken', 1);
+					$q->where('patient_master.medication_count', '>=', 1)->orWhere('patient_master.no_medication_taken', 1);
 				});
 			} else {
-				$query->where('medication_count', '=', 0)->where(function($q) {
-					$q->where('no_medication_taken', '!=', 1)->orWhereNull('no_medication_taken');
+				$query->where('patient_master.medication_count', '=', 0)->where(function($q) {
+					$q->where('patient_master.no_medication_taken', '!=', 1)->orWhereNull('patient_master.no_medication_taken');
 				});
 			}
 		}
@@ -1212,11 +1212,11 @@ class PatientService
 		if (!empty($medication_list)) {
 			if ($medication_list == 'Yes') {
 				$query->where(function($q) {
-					$q->where('medication_count', '>=', 1)->orWhere('no_medication_taken', 1);
+					$q->where('patient_master.medication_count', '>=', 1)->orWhere('patient_master.no_medication_taken', 1);
 				});
 			} else {
 				$query->where('medication_count', '=', 0)->where(function($q) {
-					$q->where('no_medication_taken', '!=', 1)->orWhereNull('no_medication_taken');
+					$q->where('patient_master.no_medication_taken', '!=', 1)->orWhereNull('patient_master.no_medication_taken');
 				});
 			}
 		}
@@ -1438,7 +1438,7 @@ class PatientService
 	{
 
 		$auth = auth()->user();
-		$query = Patient::query()->select(['id', 'first_name', 'last_name', 'full_name', 'dob', 'agency_id', 'type', 'diciplin', 'patient_code', 'mobile', 'phone', 'due_date', 'appointment_date', 'telehealth_time_slot', 'created_date', 'assign_user_id', 'service_id', 'status', 'created_by', 'location_id']);
+		$query = Patient::query()->select(['id', 'first_name', 'last_name', 'full_name', 'dob', 'agency_id', 'type', 'diciplin', 'patient_code', 'mobile', 'phone', 'due_date', 'appointment_date', 'telehealth_time_slot', 'telehealth_time_frame', 'telehealth_nurse', 'telehealth_date_time', 'created_date', 'assign_user_id', 'service_id', 'status', 'created_by', 'location_id', 'archived_at']);
 		if (is_numeric($search)) {
 			if (strlen($search) > 8) {
 				$query->where('phone', $search)->orWhere('mobile',$search);
@@ -2129,8 +2129,7 @@ class PatientService
 
 	public function getPatientDetailsById($id, $agency_fk)
 	{
-		$query = Patient::where('deleted_flag', 'N')->where('id', $id)->where('agency_id', $agency_fk)->first();
-		return $query;
+		return Patient::where('deleted_flag', 'N')->where('id', $id)->where('agency_id', $agency_fk)->first();
 	}
 
 	public static function patientDashboardGraphStatusCount($agencyID, $recordType = "", $locationId = "")
@@ -2817,11 +2816,11 @@ class PatientService
 		if (!empty($search['medication_list'])) {
 			if ($search['medication_list'] == 'Yes') {
 				$query->where(function($q) {
-					$q->where('medication_count', '>=', 1)->orWhere('no_medication_taken', 1);
+					$q->where('patient_master.medication_count', '>=', 1)->orWhere('patient_master.no_medication_taken', 1);
 				});
 			} else {
 				$query->where('medication_count', '=', 0)->where(function($q) {
-					$q->where('no_medication_taken', '!=', 1)->orWhereNull('no_medication_taken');
+					$q->where('patient_master.no_medication_taken', '!=', 1)->orWhereNull('patient_master.no_medication_taken');
 				});
 			}
 		}
@@ -3513,6 +3512,24 @@ class PatientService
 		}
 		$mysql = $query->count();
 		return $mysql;
+	}
+
+	/**
+	 * Single query that returns all slot IDs (from the given list) that have
+	 * at least one patient booked on $date. Replaces N per-slot DB calls.
+	 */
+	public function getBookedSlotIdsForDate(array $slotIds, string $date): array
+	{
+		if (empty($slotIds)) {
+			return [];
+		}
+		return Patient::where('deleted_flag', 'N')
+			->whereIn('telehealth_time_slot', $slotIds)
+			->whereRaw('DATE_FORMAT(telehealth_date_time, "%Y-%m-%d") = ?', [date('Y-m-d', strtotime($date))])
+			->pluck('telehealth_time_slot')
+			->unique()
+			->values()
+			->all();
 	}
 
 	public function getPatientExistingAppointment($patientId)
@@ -4274,20 +4291,7 @@ class PatientService
 
 	/********************Please donot change for any this funcation will be used on API Side */
 	public function checkForThirdPartyExistingDataApi($search,$agencyId){
-		// $full_name = $search['first_name'].' '.$search['last_name'];
-		// $date = str_replace('-','/',$search['dob']);
-	
-		// $query = Patient::where('deleted_flag', 'N')
-		// 	->whereRaw('LCASE(first_name) LIKE "%'.strtolower($search['first_name']).'%"')
-		// 	->whereRaw('LCASE(last_name) LIKE "%'.strtolower($search['last_name']).'%"')
-		// 	->where('mobile',$search['mobile'])
-		// 	->where('type',$search['type'])
-		// 	->where('dob',date('Y-m-d',strtotime($date)));
-		// 	if(isset($search['gender']) && $search['gender']!=""){
-		// 		$query->whereRaw('LCASE(gender) ="'.strtolower($search['gender']).'"');
-		// 	}
-			
-		// 	return 	$query->where('agency_id',$agencyId)->first();
+		
 		$date = str_replace('-', '/', $search['dob']);
 		$dob  = date('Y-m-d', strtotime($date));
 		$mobile = str_replace(['(', ')', ' ', '-'], '', $search['mobile']);
@@ -4501,6 +4505,341 @@ class PatientService
 
 	}
 
+	public function getDataExportLatest($search,$dbColumn,$allStatusIds){
+	
+		$auth = auth()->user();
+		if (in_array($auth['user_type_fk'], array(184))) {
+
+			$addCondition = "";
+			if ($auth->record_access != 'All') {
+				$addCondition = " and patient_master.type='" . $auth->record_access . "'";
+			}
+			$where = 'patient_master.deleted_flag ="N"  ' . $addCondition . '';
+
+			$agencyids = Utility::getUserWiseAgency();
+			if (!empty($agencyids)) {
+				$implodeIds = implode('","', $agencyids);
+				$where .= ' and patient_master.agency_id IN("' . $implodeIds . '")';
+			}
+			
+		} else {
+
+			$addCondition = "";
+			if ($auth->record_access != 'All') {
+				$addCondition = " and patient_master.type='" . $auth->record_access . "'";
+			}
+			$where = 'patient_master.deleted_flag ="N" ' . $addCondition . '';
+			$agencyids = Utility::getUserWiseAgency();
+			$agencyids[] = $auth['agency_fk'];
+			if (!empty($agencyids)) {
+				$implodeIds = implode('","', $agencyids);
+				$where .= ' and patient_master.agency_id IN("' . $implodeIds . '")';
+			}
+			$serviceIds = Utility::getServiceByAgencyWithUserAccess($auth->record_access);
+
+			$finalService = '';
+			if (!empty($serviceIds[0])) {
+				foreach ($serviceIds as $key => $srv) {
+					$or = '';
+					if ($key != 0) {
+						$or = ' OR ';
+					}
+					$finalService .= $or . ' FIND_IN_SET("' . $srv . '",patient_master.service_id)';
+				}
+				$where .= ' and (' . $finalService . ')';
+			}
+		}
+
+		$additionConditions = $this->additionsConditions($search);
+		$where .=$additionConditions;
+		
+		$query = Patient::selectRaw('patient_master.*')->join('agency',function($join){
+			$join->on('agency.id','=','patient_master.agency_id');
+		})->where('agency.delete_flag','N')
+			->whereRaw($where);
+		if (!empty($search['agency_status'])) {
+			$agency_status = $search['agency_status'];
+			$query->whereExists(function ($subQuery) use ($agency_status,$allStatusIds) {
+				$subQuery->select(DB::raw(1))
+					->from('patient_custom_data_submit as pcds')
+					->whereColumn('pcds.patient_id', 'patient_master.id')
+					->whereNull('deleted_at')
+					->whereIn('field_id',$allStatusIds)
+					->where('pcds.value', $agency_status);
+			});
+		}
+
+		return $query;
+	}
+
+	private function additionsConditions($search){
+
+		$where = "";
+		if (isset($search['is_archive']) && $search['is_archive'] == "true") {
+			
+			$where .= ' and patient_master.is_archive = 1';
+		} else {
+			$where .= ' and patient_master.is_archive = 0';
+		}
+
+		$where .= $this->basicFilters($search);
+		$where .= $this->dateFilters($search);
+		$where .= $this->appointmentDateFilter($search);
+		$where .= $this->serviceFilter($search);
+		$where .= $this->statusFilter($search);
+		$where .= $this->agencyFilter($search);
+		$where .= $this->otherFilter($search);
+		$where .= $this->searchUserFilter($search);
+		$where .= $this->extraOtherFields($search);
+		$where .= $this->agencyReviewLog($search);
+
+		return $where;
+	}
+
+	private function basicFilters($search){
+		$where = "";
+		if (isset($search['first_name']) && $search['first_name'] != '') {
+			$where .= ' and patient_master.full_name LIKE "%' . $search['first_name'] . '%"';
+		}
+
+		if (isset($search['type']) && $search['type'] != '') {
+			$where .= ' and patient_master.type = "' . $search['type'] . '"';
+		}
+		if (isset($search['locationId']) && $search['locationId'] != '') {
+			$where .= ' and patient_master.location_id = "' . $search['locationId'] . '"';
+		}
+
+		if (isset($search['mobile']) && $search['mobile'] != '') {
+			$where .= ' and patient_master.mobile = "' . $search['mobile'] . '"';
+		}
+
+		if (isset($search['assign_user_id']) && $search['assign_user_id'] != '') {
+			$where .= ' and patient_master.assign_user_id = "' . $search['assign_user_id'] . '"';
+		}
+
+		if (isset($search['dicipline']) && $search['dicipline'] != '') {
+			$where .= ' and patient_master.diciplin = "' . $search['dicipline'] . '"';
+		}
+		
+		if (isset($search['patient_code']) && $search['patient_code'] != '') {
+			$where .= ' and patient_master.patient_code = "' . $search['patient_code'] . '"';
+		}
+		return $where;
+	}
+
+	private function dateFilters($search)
+	{
+		$where = '';
+
+		$where .= $this->dateRange('created_date', 'patient_master.created_date', $search);
+		$where .= $this->dateRange('due_date', 'patient_master.due_date', $search);
+		$where .= $this->dateRange('completed_date', 'patient_master.completed_date', $search);
+		$where .= $this->dateRange('follow_up_date', 'patient_master.follow_date', $search);
+		$where .= $this->dateRange('traning_date', 'patient_master.traning_due_date', $search);
+		$where .= $this->dateRange('inservice_date', 'patient_master.inservice_datetime', $search);
+		$where .= $this->dateRange('last_status_update', 'patient_master.last_status_update', $search);
+
+		return $where;
+	}
+
+	private function dateRange($key, $column, $search)
+	{
+		if (empty($search[$key])) return '';
+
+		$explode = explode('-', $search[$key]);
+
+		return ' and DATE_FORMAT(' . $column . ',"%Y-%m-%d") >= "' . date('Y-m-d', strtotime($explode[0])) . '"
+				and DATE_FORMAT(' . $column . ',"%Y-%m-%d") <= "' . date('Y-m-d', strtotime($explode[1])) . '"';
+	}
+
+	private function appointmentDateFilter($search)
+	{
+		if (empty($search['appointment_date'])) return '';
+
+		$explode = explode('-', $search['appointment_date']);
+
+		if (isset($explode[1])) {
+			return ' and ((DATE_FORMAT(patient_master.appointment_date,"%Y-%m-%d") >= "' . date('Y-m-d', strtotime($explode[0])) . '"
+				and DATE_FORMAT(patient_master.appointment_date,"%Y-%m-%d") <= "' . date('Y-m-d', strtotime($explode[1])) . '")
+				OR (DATE_FORMAT(patient_master.telehealth_date_time,"%Y-%m-%d") >= "' . date('Y-m-d', strtotime($explode[0])) . '"
+				and DATE_FORMAT(patient_master.telehealth_date_time,"%Y-%m-%d") <= "' . date('Y-m-d', strtotime($explode[1])) . '"))';
+		}
+
+		return ' and ((DATE_FORMAT(patient_master.appointment_date,"%Y-%m-%d") = "' . date('Y-m-d', strtotime($explode[0])) . '")
+			OR (DATE_FORMAT(patient_master.telehealth_date_time,"%Y-%m-%d") = "' . date('Y-m-d', strtotime($explode[0])) . '"))';
+	}
+
+	private function serviceFilter($search){
+		$where = '';
+
+		if (!empty($search['service_id'])) {
+			$explode = explode(',', $search['service_id']);
+			$conditions = [];
+
+			foreach ($explode as $vals) {
+				if (($search['service_filter_type'] ?? '') == 'exclude') {
+					$conditions[] = '!FIND_IN_SET("' . $vals . '", patient_master.service_id)';
+				} else {
+					$conditions[] = 'FIND_IN_SET("' . $vals . '", patient_master.service_id)';
+				}
+			}
+
+			$glue = (($search['service_filter_type'] ?? '') == 'exclude') ? ' AND ' : ' OR ';
+			$where .= ' and (' . implode($glue, $conditions) . ')';
+		}
+
+		return $where;
+	}
+
+	private function statusFilter($search){
+		$where = "";
+		if (isset($search['status']) && $search['status'] != '') {
+			$explode = explode(',', $search['status']);
+			$final = [];
+			foreach ($explode as $vsl) {
+				if ($vsl == 'Signed-SentBacktotheAgency') {
+					$vsl = 'Signed & Sent Back to the Agency';
+				}
+				if ($vsl == 'TelehealthCompleted-Pending Forms') {
+					$vsl = 'Telehealth Completed , Pending Forms';
+				}
+				if ($vsl == 'PatientAskedtoReschedule') {
+					$vsl = 'Patient Asked to Reschedule';
+				}
+				$final[] = $vsl;
+			}
+			$quoted = array_map(function ($item) {
+				return '"' . addslashes($item) . '"';
+			}, $final);
+
+			// Build the WHERE clause
+			$where .= ' AND LOWER(patient_master.status) IN (' . implode(',', $quoted) . ')';
+		}
+
+		return $where;
+	}
+
+	private function agencyFilter($search){
+		$where = "";
+		if (isset($search['agency_fk']) && $search['agency_fk'] != '') {
+			$agency_fk = str_replace(',', '","', $search['agency_fk']);
+			if(isset($search['agency_filter_type']) && $search['agency_filter_type'] == 'include'){
+				$where .= ' and patient_master.agency_id IN( "' . $agency_fk . '")';
+			}elseif(isset($search['agency_filter_type']) && $search['agency_filter_type'] == 'exclude'){
+				$where .= ' and patient_master.agency_id NOT IN( "' . $agency_fk . '")';
+			}
+		}
+
+		return $where;
+	}
+
+	private function otherFilter($search){
+		$auth = auth()->user();
+		$where ="";
+		if (isset($search['is_past_show']) && $search['is_past_show'] != '') {
+			$where .= ' and patient_master.appointment_date < "' . now() . '"';
+		}
+
+		if (isset($search['dob']) && $search['dob'] != '') {
+			$where .= ' and patient_master.dob = "' . date('Y-m-d', strtotime($search['dob'])) . '"';
+		}
+	
+		if (isset($search['traning_status']) && $search['traning_status'] != '') {
+			$traning_status = str_replace(',', '","', $search['traning_status']);
+			$where .= ' and patient_master.training_status IN( "' . $traning_status . '")';
+		}
+
+		if (isset($search['transition_aid']) && $search['transition_aid'] != '') {
+			$transistion_aid = $search['transition_aid'];
+			if ($transistion_aid != 0) {
+				$where .= ' and patient_master.transition_aid = "' . $transistion_aid . '"';
+			} else {
+				$where .= ' and (patient_master.transition_aid = "' . $transistion_aid . '" OR patient_master.transition_aid IS NULL)';
+			}
+		}
+
+		if ($auth->restrict_user ==1) {
+			$where .= ' and patient_master.created_by ="' . $auth->id . '"';
+		}
+
+		if (isset($search['sms_status']) && $search['sms_status'] != '') {
+			$where .= ' and patient_master.patient_sms_flag ="' . $search['sms_status'] . '"';
+		}
+		
+
+		if (isset($search['medication_list']) && $search['medication_list'] != '') {
+			if($search['medication_list'] =='Yes'){
+				$where .= ' AND ((medication_count >= 1 OR no_medication_taken = 1)) ';
+			}else{
+				$where .= ' AND medication_count = 0 AND (no_medication_taken != 1 OR no_medication_taken IS NULL) ';
+			}
+		}
+		
+		if (isset($search['mdo_tag']) && $search['mdo_tag'] != '') {
+			if($search['mdo_tag'] =='Yes'){
+				$where .= ' AND mdo_tag_count >=1';
+			}else{
+				$where .= ' AND mdo_tag_count ==0';
+			}
+		}
+		
+		if (isset($search['insurance_elg']) && $search['insurance_elg'] != '') {
+			if($search['insurance_elg'] =='Yes'){
+				$where .= ' AND insurance_elg_count >=1';
+			}else{
+				$where .= ' AND insurance_elg_count ==0';
+			}
+		}
+		return $where;
+	}
+
+	private function searchUserFilter($search){
+		$where = '';
+	
+		$where .= $this->searchUserField('created_by', 'patient_master.created_by', $search);
+		$where .= $this->searchUserField('last_status_updated_by_id', 'patient_master.last_status_update_by', $search);
+		$where .= $this->searchUserField('language_id', 'patient_master.language', $search);
+		$where .= $this->searchUserField('referral_type', 'patient_master.referral_type', $search);
+		return $where;
+	}
+
+	private function searchUserField($key, $column, $search)
+	{
+		if (empty($search[$key])) return '';
+		if (isset($search[$key]) && $search[$key] =="undefined") return '';
+		return ' and ' . $column . ' = "' . $search[$key] . '"';
+	}
+
+	private function extraOtherFields($search){
+		$where = "";
+		
+		if (!empty($search['filter_branch_id'])) {
+			if(isset($search['branch_filter_type']) && $search['branch_filter_type'] == 'include'){
+				$where .=" and branch_id = ".$search['filter_branch_id'];
+
+			}elseif(isset($search['branch_filter_type']) && $search['branch_filter_type'] == 'exclude'){
+				$where .= " AND (
+					branch_id != " . (int) $search['filter_branch_id'] . "
+					OR branch_id = 0
+					OR branch_id IS NULL
+				)";
+			}
+		}
+
+		if(!empty($search['state'])){
+			$where .=' and patient_master.state ='.$search['state'];
+		}
+		if(isset($search['record_read']) && $search['record_read'] == 0){
+			$where .=' and patient_master.record_read =0';
+		}
+
+		if(!empty($search['agency_rep']) && $search['agency_rep'] !=""){
+			if($search['agency_rep'] !='undefined'){
+				$where .=' and patient_master.agency_user_id ='.$search['agency_rep'];
+			}
+		}
+		return $where;
+	}
 	public function checkForExistingRecordsbyCronjob($record,$mobile){
 		return Patient::where([
             ['agency_id', $record->agency_id],
@@ -4511,5 +4850,21 @@ class PatientService
             ['deleted_flag', 'N'],
             [DB::raw('LOWER(gender)'), strtolower($record->gender)],
         ])->whereRaw("REPLACE(REPLACE(REPLACE(mobile, '(', ''), ')', ''), '-', '') = ?", [$mobile])->first();
+
+	}
+
+	private function agencyReviewLog($search){
+		$where = "";
+		$auth = auth()->user();
+
+		if ($auth->agency_fk != "" && !empty($search['agency_enable_review'])) {
+			if ($search['agency_enable_review'] == "true") {
+				$where .= ' and patient_master.is_reviewed = 1';
+			} else {
+				$where .= ' and patient_master.is_reviewed = 0';
+			}
+		}
+
+		return $where;
 	}
 }

@@ -519,47 +519,23 @@
                                                     @endif
                                                     <br>
                                                 </dd>
-                                                <dt> Country</dt>
-                                                <dd> <?php echo $record->county == null ? '-' : $record->county . '<br>'; ?></dd>
-                                                <dt> State</dt>
-                                                <dd>
-                                                    <?php
-                                                    if($record->state !=""){
-                                                        echo $record->state;
-                                                    }else{
-                                                        echo '-';
-                                                    }
-                                                    ?>
-                                                </dd>
-                                                <dt> City</dt>
-                                                <dd><?php
-                                                if($record->city !=""){
-                                                    echo $record->city;
-                                                }else{
-                                                    echo '-';
-                                                }
-                                                ?></dd>
-                                                <dt> Address1</dt>
-                                                <dd><?php
-                                                if($record->address1 !=""){
-                                                    echo $record->address1;
-                                                }else{
-                                                    echo '-';
-                                                }
-                                                ?></dd>
-
+                                                 <dt> Address1</dt>
+                                                <dd>{{ !empty($record->address1) ? $record->address1 : 'N/A' }}</dd>
                                                 <dt> Apt/Suite/Floor</dt>
                                                 <dd>
-                                                {{ $record->address2 != "" ? $record->address2 : "-" }}
+                                                {{ $record->address2 != "" ? $record->address2 : "N/A" }}
+                                                </dd>
+                                                <dt> City</dt>
+                                                <dd>{{ !empty($record->city) ? $record->city : 'N/A' }}</dd>
+                                                <dt> State</dt>
+                                                <dd>
+                                                    {{ !empty($record->state) ? $record->state : 'N/A' }}
                                                 </dd>
                                                 <dt> Zipcode</dt>
-                                                <dd><?php
-                                                if($record->zip_code !=""){
-                                                    echo $record->zip_code;
-                                                }else{
-                                                    echo '-';
-                                                }
-                                                ?></dd>
+                                                <dd>{{ !empty($record->zip_code) ? $record->zip_code : 'N/A' }}</dd>
+                                                <dt> County</dt>
+                                                <dd> {!! $record->county ? $record->county . '<br>' : 'N/A' !!}</dd>
+                                                
                                                 <dt> Date of Birth</dt>
                                                 <dd><span id="patient_dob"><?php if ($record->dob != '0000-00-00') {
                                                                                 echo Common::convertMDY($record->dob);
@@ -694,18 +670,16 @@
                                             <?php } ?>
                                             <dt>Telehealth Appointment </dt>
                                             <dd><span id="telehealth-appointment-date-id">
-                                                @if(isset($telehealth_time_slot['start_time']))
-                                                    <p><strong>Date:</strong>{{ date('m/d/Y', strtotime($record->telehealth_date_time))}} </p>
-                                                    <p><strong>Time Slot:</strong> {{$telehealth_time_slot['start_time']}} - {{$telehealth_time_slot['end_time']}} <br/>
-                                                    <strong>Nurse</strong>:
-                                                    C#{{$telehealth_time_slot['nurse_id']}}
-                                                    @if(isset($nurse) && array_key_exists($telehealth_time_slot['nurse_id'],$nurse))
-                                                        ({{$nurse[$telehealth_time_slot['nurse_id']]['language']}})
+                                                @if(!empty($telehealth_time_frame) || isset($telehealth_time_slot['start_time']))
+                                                    <p><strong>Date:</strong> {{ date('m/d/Y', strtotime($record->telehealth_date_time)) }}</p>
+                                                    <p><strong>Time Frame:</strong> {{ $telehealth_time_frame }}</p>
+                                                    @if(!empty($record->telehealth_nurse))
+                                                    <p><strong>Nurse:</strong> C#{{ $record->telehealth_nurse }}
+                                                    @if(isset($nurse) && array_key_exists($record->telehealth_nurse, $nurse))
+                                                        ({{ $nurse[$record->telehealth_nurse]['language'] }})
                                                     @endif
-                                                    <br/>
-                                                    @if(!empty($telehealth_time_slot['name']))
-                                                    <strong>Language:</strong> {{$telehealth_time_slot['name']}}
-                                                    @endif</p>
+                                                    </p>
+                                                    @endif
                                                 @else
                                                     -
                                                 @endif

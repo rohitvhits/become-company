@@ -117,8 +117,11 @@ class TemplateService
 
 	}
 
-	public function getListByLookupField($lookupfields){
-		$query =Template::where('del_flag','N')->where('lookup_fields',$lookupfields)->where('active_status','active')->orderBy('template_name','asc')->get();
+	public function getListByLookupField($lookupfields, $templateType = null){
+		$query = Template::where('del_flag','N')->where('lookup_fields',$lookupfields)->where('active_status','active')->where('custom_template', 1)
+		->when($templateType, function ($q) use ($templateType) {
+			$q->where('template_type', $templateType);
+		})->orderBy('template_name','asc')->get();
 		return $query;
 	}
 	
@@ -156,14 +159,25 @@ class TemplateService
 	public function loadEsignTemplateData($agency_id,$type,$templateType=null){
 		
 		return  Template::select('id','template_name','response')->where('active_status', 'Active')->where('del_flag', 'N')
-    ->where(function ($q) use ($agency_id) {
-        $q->whereRaw('FIND_IN_SET(?, agency_id)', [$agency_id])
-          ->orWhereNull('agency_id'); })->where('lookup_fields', $type)->where('custom_template', 1)
-    ->when($templateType, function ($q) use ($templateType) {
-		if($templateType !=null){
-$q->where('template_type', $templateType);
-		}
-        
-    })->orderBy('template_name','asc')->get();
+		->where(function ($q) use ($agency_id) {
+			$q->whereRaw('FIND_IN_SET(?, agency_id)', [$agency_id])
+			->orWhereNull('agency_id'); })->where('lookup_fields', $type)->where('custom_template', 1)
+		->when($templateType, function ($q) use ($templateType) {
+			if($templateType !=null){
+				$q->where('template_type', $templateType);
+			}
+			
+		})->orderBy('template_name','asc')->get();
+	}
+
+	public function getListByLookupFieldWithSignerCaregiver($lookupfields, $templateType = null){
+		return Template::select('template_master.id','template_master.template_name')->join('document_signer_master',function($join){
+			$join->on('document_signer_master.template_id','=','template_master.id')->where('document_signer_master.del_flag','N');
+		})
+		->where('template_master.del_flag','N')->where('template_master.lookup_fields',$lookupfields)->where('template_master.active_status','active')->where('template_master.custom_template',1)
+		->when($templateType, function ($q) use ($templateType) {
+			$q->where('template_master.template_type', $templateType);
+		})->where('document_signer_master.name','Caregiver')->groupBy('template_master.id')->orderBy('template_master.template_name','asc')->get();
+
 	}
 }

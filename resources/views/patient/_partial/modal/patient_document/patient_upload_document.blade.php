@@ -145,12 +145,13 @@
                     </div>
                     <div class="modal-footer">
                     <img src="{{ asset('ajax-loader.gif')}}" alt="loader" id="loadertag_doc" style="display:none">
-                        <button type="button" class="btn btn-success" id="documentSave">Save</button>
-                        @can('ai-analyse-doc')
+                     @can('ai-analyse-doc')
                         @if(auth()->user()->agency_fk == "")
-                        <button type="button" class="btn btn-primary" id="documentSaveAnalyse"><i class="mdi mdi-robot mr-1"></i>Save & Analyse</button>
+                        <button type="button" class="btn-hmw" id="documentSaveAnalyse" style="padding:6px 16px !important;font-size:14px !important;border-radius:17px !important;height:40px !important;line-height:1.5 !important;"><svg width="15" height="15" viewBox="0 0 24 24" fill="white" style="vertical-align:middle;flex-shrink:0;"><path d="M12 3c-1.2 5.4-5.4 7.8-9 9 3.6 1.2 7.8 3.6 9 9 1.2-5.4 5.4-7.8 9-9-3.6-1.2-7.8-3.6-9-9z"/><path d="M5 3c-.6 2.7-2.3 3.7-4 4 1.7.3 3.4 1.3 4 4 .6-2.7 2.3-3.7 4-4-1.7-.3-3.4-1.3-4-4z" opacity=".8"/></svg> Save & Analyse</button>
                         @endif
                         @endcan
+                        <button type="button" class="btn btn-success" id="documentSave">Save</button>
+                       
                         <button type="button" class="btn btn-light" data-dismiss="modal" onclick="closeDocumentSection()">Close</button>
                     </div>
                 </form>
